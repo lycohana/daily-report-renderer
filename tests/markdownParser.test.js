@@ -89,6 +89,39 @@ VSCode扩展市场持续增长。
       expect(Object.keys(frontMatter).length).toBe(0);
       expect(content).toContain('# Hello World');
     });
+
+    test('should parse form field with pipe separator', () => {
+      const markdown = `---
+form: 微信公众号AIdaily|https://example.com
+---
+# Hello World`;
+      const { frontMatter, content } = markdownParser.parseFrontMatter(markdown);
+      
+      expect(frontMatter.form).toBe('微信公众号AIdaily|https://example.com');
+      expect(content).toContain('# Hello World');
+    });
+
+    test('should parse form field with dash separator', () => {
+      const markdown = `---
+form: 微信公众号AIdaily - https://example.com
+---
+# Hello World`;
+      const { frontMatter, content } = markdownParser.parseFrontMatter(markdown);
+      
+      expect(frontMatter.form).toBe('微信公众号AIdaily - https://example.com');
+      expect(content).toContain('# Hello World');
+    });
+
+    test('should parse form field without URL', () => {
+      const markdown = `---
+form: 微信公众号AIdaily
+---
+# Hello World`;
+      const { frontMatter, content } = markdownParser.parseFrontMatter(markdown);
+      
+      expect(frontMatter.form).toBe('微信公众号AIdaily');
+      expect(content).toContain('# Hello World');
+    });
   });
 
   describe('extractCustomTags', () => {

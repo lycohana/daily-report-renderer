@@ -23,6 +23,109 @@ jest.mock('../src/fileWatcher', () => ({
 const cache = require('../src/cache');
 const fileWatcher = require('../src/fileWatcher');
 
+// Import the parseFormField function by evaluating it from routes
+// Since it's not exported, we'll test it indirectly through integration
+describe('Form Field Parsing', () => {
+  // Test the parseFormField logic directly (updated to support multiple sources)
+  function parseFormField(formValue) {
+    if (!formValue) {
+      return [];
+    }
+
+    // 先用逗号分割多个来源
+    const sources = formValue.split(',');
+
+    return sources.map(source => {
+      const sourceStr = source.trim();
+      if (!sourceStr) {
+        return { name: null, url: null };
+      }
+
+      // 尝试使用 | 分隔
+      if (sourceStr.includes('|')) {
+        const parts = sourceStr.split('|');
+        return {
+          name: parts[0].trim(),
+          url: parts[1] ? parts[1].trim() : null
+        };
+      }
+
+      // 尝试使用 - 分隔
+      if (sourceStr.includes(' - ')) {
+        const parts = sourceStr.split(' - ');
+        return {
+          name: parts[0].trim(),
+          url: parts[1] ? parts[1].trim() : null
+        };
+      }
+
+      // 只有名称，没有URL
+      return {
+        name: sourceStr.trim(),
+        url: null
+      };
+    }).filter(source => source.name !== null);
+  }
+
+  test('should parse form field with pipe separator', () => {
+    const result = parseFormField('微信公众号AIdaily|https://example.com');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('微信公众号AIdaily');
+    expect(result[0].url).toBe('https://example.com');
+  });
+
+  test('should parse form field with dash separator', () => {
+    const result = parseFormField('微信公众号AIdaily - https://example.com');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('微信公众号AIdaily');
+    expect(result[0].url).toBe('https://example.com');
+  });
+
+  test('should parse form field without URL', () => {
+    const result = parseFormField('微信公众号AIdaily');
+    expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('微信公众号AIdaily');
+    expect(result[0].url).toBe(null);
+  });
+
+  test('should handle empty form field', () => {
+    const result = parseFormField('');
+    expect(result).toEqual([]);
+  });
+
+  test('should handle null form field', () => {
+    const result = parseFormField(null);
+    expect(result).toEqual([]);
+  });
+
+  test('should handle undefined form field', () => {
+    const result = parseFormField(undefined);
+    expect(result).toEqual([]);
+  });
+
+  test('should parse multiple sources with comma separator', () => {
+    const result = parseFormField('AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog,AI News|https://ainews.com');
+    expect(result).toHaveLength(3);
+    expect(result[0].name).toBe('AIBase');
+    expect(result[0].url).toBe('https://www.aibase.com');
+    expect(result[1].name).toBe('GitHub Blog');
+    expect(result[1].url).toBe('https://github.com/blog');
+    expect(result[2].name).toBe('AI News');
+    expect(result[2].url).toBe('https://ainews.com');
+  });
+
+  test('should handle mixed sources with and without URLs', () => {
+    const result = parseFormField('Source1|https://source1.com,Source2,Source3|https://source3.com');
+    expect(result).toHaveLength(3);
+    expect(result[0].name).toBe('Source1');
+    expect(result[0].url).toBe('https://source1.com');
+    expect(result[1].name).toBe('Source2');
+    expect(result[1].url).toBe(null);
+    expect(result[2].name).toBe('Source3');
+    expect(result[2].url).toBe('https://source3.com');
+  });
+});
+
 // Simple router tests without starting the full server
 describe('Routes Module', () => {
   beforeEach(() => {

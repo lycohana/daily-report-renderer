@@ -285,6 +285,18 @@
     <% } %>
 
     <footer class="footer">
+      <% if (formInfo && formInfo.length > 0) { %>
+      <p>来源：
+        <% formInfo.forEach((source, index) => { %>
+          <% if (source.url) { %>
+            <a href="<%= source.url %>" target="_blank" style="color: #bbb; text-decoration: none;"><%= source.name %></a>
+          <% } else { %>
+            <%= source.name %>
+          <% } %>
+          <% if (index < formInfo.length - 1) { %>、<% } %>
+        <% }); %>
+      </p>
+      <% } %>
       <p>每日日报 - 自动化生成</p>
       <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
     </footer>

@@ -90,6 +90,7 @@ number: 002
 date: 2026-2-23
 weather: 东莞 · 晴 26°C/17°C
 read_time: 约 10 分钟
+form: AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog
 ---
 [head]: #
 [from:https://example.com]: #

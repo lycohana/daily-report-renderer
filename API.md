@@ -273,6 +273,29 @@ number: 002
 | weather | string | 天气信息 |
 | read_time | string | 阅读时长 |
 | number | string | 期号 |
+| form | string | 来源信息，格式：`名称|URL,名称|URL,...` |
+
+**form 字段格式示例:**
+
+```yaml
+form: AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog,AI News|https://ainews.com
+```
+
+**解析结果:**
+
+```javascript
+formInfo = [
+  { name: 'AIBase', url: 'https://www.aibase.com' },
+  { name: 'GitHub Blog', url: 'https://github.com/blog' },
+  { name: 'AI News', url: 'https://ainews.com' }
+];
+```
+
+**支持格式:**
+- `名称|URL` - 名称和链接
+- `名称 - URL` - 使用短横线分隔
+- `名称` - 仅名称，无链接
+- `来源1|URL1,来源2|URL2,来源3` - 多个来源用逗号分隔
 
 ### 自定义标签
 
