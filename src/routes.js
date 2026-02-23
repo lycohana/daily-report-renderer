@@ -8,6 +8,57 @@ const fileWatcher = require('./fileWatcher');
 
 const router = express.Router();
 
+/**
+ * 解析form字段值
+ * 支持格式：
+ * - form: 来源名称|来源URL
+ * - form: 来源名称 - 来源URL
+ * - form: 来源名称 (无URL)
+ * - form: 来源1|URL1,来源2|URL2,来源3 (多个来源，用逗号分隔)
+ *
+ * @param {string} formValue - form字段的值
+ * @returns {Array} - [{ name: string, url: string|null }, ...]
+ */
+function parseFormField(formValue) {
+  if (!formValue) {
+    return [];
+  }
+
+  // 先用逗号分割多个来源
+  const sources = formValue.split(',');
+
+  return sources.map(source => {
+    const sourceStr = source.trim();
+    if (!sourceStr) {
+      return { name: null, url: null };
+    }
+
+    // 尝试使用 | 分隔
+    if (sourceStr.includes('|')) {
+      const parts = sourceStr.split('|');
+      return {
+        name: parts[0].trim(),
+        url: parts[1] ? parts[1].trim() : null
+      };
+    }
+
+    // 尝试使用 - 分隔
+    if (sourceStr.includes(' - ')) {
+      const parts = sourceStr.split(' - ');
+      return {
+        name: parts[0].trim(),
+        url: parts[1] ? parts[1].trim() : null
+      };
+    }
+
+    // 只有名称，没有URL
+    return {
+      name: sourceStr.trim(),
+      url: null
+    };
+  }).filter(source => source.name !== null);
+}
+
 router.get('/', async (req, res) => {
   try {
     const latestReport = cache.getLatestReport();
@@ -31,6 +82,7 @@ router.get('/', async (req, res) => {
     const parsed = markdownParser.parseMarkdown(content);
     const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, latest.basename);
     const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, latest.basename);
+    const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
     
     const reportData = {
       title,
@@ -43,6 +95,7 @@ router.get('/', async (req, res) => {
       headSection: parsed.headSection,
       date: latest.date,
       filename: latest.basename,
+      formInfo,
       md: markdownParser.md,
       renderMarkdown: (content) => {
         if (!content) {
@@ -65,6 +118,52 @@ router.get('/', async (req, res) => {
               </div>`
             ).join('');
             return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
+          }
+          return '';
+        });
+        // 后处理：将<weather>块替换为HTML（支持位置渲染）
+        html = html.replace(/<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g, (match, weatherContent) => {
+          const isCenter = match.includes('center');
+          const dayRegex = /<day>([^<]+)<\/day>/g;
+          const items = [];
+          let m;
+          while ((m = dayRegex.exec(weatherContent)) !== null) {
+            const parts = m[1].split('|');
+            if (parts.length >= 4) {
+              let day, city, icon, condition, temp;
+              if (parts.length === 4) {
+                // 无城市: 日期|图标|天气|温度
+                day = parts[0].trim();
+                city = null;
+                icon = parts[1].trim();
+                condition = parts[2].trim();
+                temp = parts[3].trim();
+              } else {
+                // 有城市: 日期|城市|图标|天气|温度
+                day = parts[0].trim();
+                city = parts[1].trim();
+                icon = parts[2].trim();
+                condition = parts[3].trim();
+                temp = parts[4].trim();
+              }
+              items.push({ day, city, icon, condition, temp });
+            }
+          }
+          if (items.length > 0) {
+            const centerClass = isCenter ? ' weather-center' : '';
+            const itemsHtml = items.map(item => {
+              const cityHtml = item.city 
+                ? `<div class="weather-city">${item.city}</div>` 
+                : `<div class="weather-city weather-city-placeholder">-</div>`;
+              return `<div class="weather-item">
+                <div class="weather-icon">${item.icon}</div>
+                ${cityHtml}
+                <div class="weather-condition">${item.condition}</div>
+                <div class="weather-temp">${item.temp}</div>
+                <div class="weather-day">${item.day}</div>
+              </div>`;
+            }).join('');
+            return `<div class="weather-grid${centerClass}" data-inline="true">${itemsHtml}</div>`;
           }
           return '';
         });
@@ -170,6 +269,7 @@ router.get('/report/:filename', async (req, res) => {
     
     const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, sanitizedFilename);
     const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, sanitizedFilename);
+    const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
     
     const reportData = {
       title,
@@ -181,6 +281,7 @@ router.get('/report/:filename', async (req, res) => {
       htmlContent: parsed.htmlContent,
       sections: parsed.sections,
       filename: sanitizedFilename,
+      formInfo,
       renderMarkdown: (content) => {
         if (!content) {
           return '';
@@ -202,6 +303,52 @@ router.get('/report/:filename', async (req, res) => {
               </div>`
             ).join('');
             return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
+          }
+          return '';
+        });
+        // 后处理：将<weather>块替换为HTML（支持位置渲染）
+        html = html.replace(/<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g, (match, weatherContent) => {
+          const isCenter = match.includes('center');
+          const dayRegex = /<day>([^<]+)<\/day>/g;
+          const items = [];
+          let m;
+          while ((m = dayRegex.exec(weatherContent)) !== null) {
+            const parts = m[1].split('|');
+            if (parts.length >= 4) {
+              let day, city, icon, condition, temp;
+              if (parts.length === 4) {
+                // 无城市: 日期|图标|天气|温度
+                day = parts[0].trim();
+                city = null;
+                icon = parts[1].trim();
+                condition = parts[2].trim();
+                temp = parts[3].trim();
+              } else {
+                // 有城市: 日期|城市|图标|天气|温度
+                day = parts[0].trim();
+                city = parts[1].trim();
+                icon = parts[2].trim();
+                condition = parts[3].trim();
+                temp = parts[4].trim();
+              }
+              items.push({ day, city, icon, condition, temp });
+            }
+          }
+          if (items.length > 0) {
+            const centerClass = isCenter ? ' weather-center' : '';
+            const itemsHtml = items.map(item => {
+              const cityHtml = item.city 
+                ? `<div class="weather-city">${item.city}</div>` 
+                : `<div class="weather-city weather-city-placeholder">-</div>`;
+              return `<div class="weather-item">
+                <div class="weather-icon">${item.icon}</div>
+                ${cityHtml}
+                <div class="weather-condition">${item.condition}</div>
+                <div class="weather-temp">${item.temp}</div>
+                <div class="weather-day">${item.day}</div>
+              </div>`;
+            }).join('');
+            return `<div class="weather-grid${centerClass}" data-inline="true">${itemsHtml}</div>`;
           }
           return '';
         });

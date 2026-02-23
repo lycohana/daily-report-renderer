@@ -1,6 +1,6 @@
 /**
  * 自定义标签提取模块
- * 
+ *
  * 提取以下类型的标签：
  * - [tag:xxx]: 标签
  * - [head]: # - 头版头条标记
@@ -13,47 +13,46 @@
  * - [sum:xxx]: 摘要
  * - [think:xxx]: 观点
  * - <data>...</data>: 数据块（根据位置分配到头版头条或文章）
+ *
+ * 此模块使用新的 tags/index.js 架构作为核心解析引擎
+ * 同时保留了旧架构中复杂的状态跟踪逻辑用于 section/article 元数据
  */
+
+const tagRegistry = require('./tags');
 
 /**
  * 提取自定义标签
- * 
+ *
  * @param {string} content - Markdown文件内容（已去除Front Matter）
  * @returns {Object} - { tags: Object, cleanContent: string }
  *   - tags: 提取的标签对象
  *   - cleanContent: 去除标签后的干净内容
  */
 function extractCustomTags(content) {
-  const tags = {};
+  // 使用新架构提取基础标签
+  const { tags: newTags, cleanContent: newCleanContent } = tagRegistry.extractTags(content);
+
+  // 合并新架构的结果
+  const tags = { ...newTags };
   const sectionArticleMeta = [];
   let currentMeta = { from: null, fromStr: null, tags: [], icon: null, intro: null, articleMeta: [] };
   let currentArticleMeta = null;
-  let cleanContent = content;
-  
-  cleanContent = cleanContent.replace(/^\[tag:[^\]]+\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[head\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[from:[^\]]+\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[fromstr:[^\]]+\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[articles\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[intro:[^\]]+\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[intro:[^\]]+$/gm, '');
-  cleanContent = cleanContent.replace(/^\[sum:[^\]]+\]:.*$/gm, '');
-  cleanContent = cleanContent.replace(/^\[icon:[^\]]+\]:.*$/gm, '');
-  
+
   const lines = content.split('\n');
+  let hasHeadMarker = false; // 是否看到了 [head]: 标记
   let inHeadline = true;
   let inSection = false;
   let sectionIndex = -1;
   let inArticles = false;
   let inArticlesSeen = false;
   const headlineTags = [];
-  
+
   // 用于跟踪dataBlock属于哪个区域
   let currentDataBlockPosition = 'headline'; // 'headline', 'section', 'article'
   const headlineDataBlocks = [];
   const sectionDataBlocks = [];
-  const articleDataBlocks = []; // 二维数组，每个section一维，每个section中的articles一维
-  
+  const articleDataBlocks = []; // 二维数组
+
   // 解析dataBlock的辅助函数
   function parseDataBlock(dataContent) {
     const dateItems = [];
@@ -67,22 +66,19 @@ function extractCustomTags(content) {
     }
     return dateItems.length > 0 ? dateItems : null;
   }
-  
+
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    
+
     // 检测dataBlock的位置
     if (line.includes('<data>')) {
-      // 找到dataBlock的完整内容（可能跨多行）
       const dataBlockStart = line.indexOf('<data>');
       let dataBlockContent = '';
-      
-      // 如果<data>在同一行
+
       if (line.includes('</data>')) {
         const endIndex = line.indexOf('</data>') + 7;
         dataBlockContent = line.substring(dataBlockStart + 6, endIndex - 7);
       } else {
-        // 跨多行的dataBlock
         dataBlockContent = line.substring(dataBlockStart + 6);
         for (let j = i + 1; j < lines.length; j++) {
           if (lines[j].includes('</data>')) {
@@ -93,7 +89,7 @@ function extractCustomTags(content) {
           }
         }
       }
-      
+
       const parsedData = parseDataBlock(dataBlockContent);
       if (parsedData) {
         if (currentDataBlockPosition === 'headline') {
@@ -102,7 +98,6 @@ function extractCustomTags(content) {
           if (sectionDataBlocks[sectionIndex] === undefined) {
             sectionDataBlocks[sectionIndex] = [];
           }
-          // section级别的dataBlock
           sectionDataBlocks[sectionIndex].push({ type: 'section', data: parsedData });
         } else if (currentDataBlockPosition === 'article') {
           if (sectionDataBlocks[sectionIndex] === undefined) {
@@ -116,7 +111,13 @@ function extractCustomTags(content) {
         }
       }
     }
-    
+
+    // 检测 [head]: 标记
+    if (line.startsWith('[head]:')) {
+      hasHeadMarker = true;
+      continue;
+    }
+
     if (line.startsWith('[section]:')) {
       if (inSection) {
         if (currentArticleMeta && (currentArticleMeta.from || currentArticleMeta.fromStr || currentArticleMeta.tags.length > 0)) {
@@ -145,10 +146,14 @@ function extractCustomTags(content) {
       continue;
     }
 
-    if (line.startsWith('# ') && inHeadline) {
+    // 只有在看到了 [head]: 标记后，第一个 # 标题才是头版头条的结束
+    if (line.startsWith('# ') && inHeadline && hasHeadMarker) {
       inHeadline = false;
       continue;
     }
+    
+    // 如果没有 [head]: 标记，遇到 # 标题时不设置 inHeadline = false
+    // 这样标签会被当作章节级别的标签处理
 
     if (line.startsWith('[intro:')) {
       const introMatch = line.match(/\[intro:([^\]]+)\]/);
@@ -167,7 +172,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('# ') && inSection) {
       if (currentArticleMeta && (currentArticleMeta.from || currentArticleMeta.fromStr || currentArticleMeta.tags.length > 0)) {
         currentMeta.articleMeta.push({ ...currentArticleMeta });
@@ -184,7 +189,7 @@ function extractCustomTags(content) {
       currentDataBlockPosition = 'section';
       continue;
     }
-    
+
     if (line.startsWith('## ') && inSection && inArticles) {
       if (currentArticleMeta && (currentArticleMeta.from || currentArticleMeta.fromStr || currentArticleMeta.tags.length > 0)) {
         currentMeta.articleMeta.push({ ...currentArticleMeta });
@@ -193,7 +198,7 @@ function extractCustomTags(content) {
       currentDataBlockPosition = 'article';
       continue;
     }
-    
+
     if (line.startsWith('[from:') && inArticles) {
       if (!currentArticleMeta) {
         currentArticleMeta = { from: null, fromStr: null, tags: [], isFirstArticle: false };
@@ -204,7 +209,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('[fromstr:') && inArticles) {
       if (!currentArticleMeta) {
         currentArticleMeta = { from: null, fromStr: null, tags: [], isFirstArticle: false };
@@ -215,7 +220,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('[tag:') && inArticles) {
       const tagMatch = line.match(/\[tag:([^\]]+)\]/);
       if (tagMatch) {
@@ -227,7 +232,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('[tag:') && inHeadline) {
       const tagMatch = line.match(/\[tag:([^\]]+)\]/);
       if (tagMatch) {
@@ -235,7 +240,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('[from:') && !inArticles && inSection) {
       const fromMatch = line.match(/\[from:([^\]]+)\]/);
       if (fromMatch) {
@@ -243,7 +248,7 @@ function extractCustomTags(content) {
       }
       continue;
     }
-    
+
     if (line.startsWith('[fromstr:') && !inArticles && inSection) {
       const fromStrMatch = line.match(/\[fromstr:([^\]]+)\]/);
       if (fromStrMatch) {
@@ -252,95 +257,44 @@ function extractCustomTags(content) {
       continue;
     }
   }
-  
+
   if (currentArticleMeta && inSection) {
     currentMeta.articleMeta.push({ ...currentArticleMeta });
   }
-  
+
   if (inSection) {
     sectionArticleMeta.push({ ...currentMeta });
   }
-  
+
   tags.sectionArticleMeta = sectionArticleMeta;
-  
-  const tagRegex = /\[tag:([^\]]+)\]/g;
+
+  // 使用新架构的 cleanContent 作为基础
+  let cleanContent = newCleanContent;
+
+  // 处理 headFrom - 头版头条来源
   const headFromRegex = /\[head\]:\s*#\s*\n\[from:([^\]]+)\]/g;
-  const fromRegex = /\[from:([^\]]+)\]/g;
-  const fromstrRegex = /\[fromstr:([^\]]+)\]/g;
-  const introRegex = /\[intro:([^\]]+)\]/g;
-  const sumRegex = /\[sum:([^\]]+)\]/g;
-  const thinkRegex = /\[think:([^\]]+)\]/g;
-  const iconRegex = /\[icon:([^\]]+)\]/g;
-  
   let match;
-  
-  while ((match = tagRegex.exec(content)) !== null) {
-    if (!tags.tag) {
-      tags.tag = [];
-    }
-    tags.tag.push(match[1]);
-  }
-  cleanContent = cleanContent.replace(tagRegex, '');
-  
   while ((match = headFromRegex.exec(content)) !== null) {
     tags.headFrom = match[1];
   }
   cleanContent = cleanContent.replace(headFromRegex, '');
-  
-  while ((match = fromRegex.exec(content)) !== null) {
-    if (!tags.from) {
-      tags.from = match[1];
-    }
-  }
-  cleanContent = cleanContent.replace(fromRegex, '');
-  cleanContent = cleanContent.replace(fromstrRegex, (m, v) => {
-    tags.fromstr = v;
-    return '';
-  });
-  
-  while ((match = introRegex.exec(content)) !== null) {
-    tags.intro = match[1];
-  }
-  cleanContent = cleanContent.replace(introRegex, '');
-  
-  while ((match = sumRegex.exec(content)) !== null) {
-    tags.sum = match[1];
-  }
-  cleanContent = cleanContent.replace(sumRegex, '');
-  
-  while ((match = thinkRegex.exec(content)) !== null) {
-    tags.think = match[1];
-  }
-  cleanContent = cleanContent.replace(thinkRegex, '');
-  
-  while ((match = iconRegex.exec(content)) !== null) {
-    tags.icon = match[1];
-  }
-  cleanContent = cleanContent.replace(iconRegex, '');
-  
-  // 注意：dataBlock的位置跟踪已经在上面的lines遍历中完成
-  // 不需要再重复提取，直接使用已收集的dataBlocks
-  
-  // 将dataBlocks存储为结构化对象，包含位置信息
-  // 需要过滤掉null/undefined值
+
+  // 将dataBlocks存储为结构化对象
   tags.dataBlocks = {
     headline: headlineDataBlocks,
     sections: sectionDataBlocks.filter(s => s !== null && s !== undefined),
     articles: articleDataBlocks.filter(a => a !== null && a !== undefined)
   };
-  
-  // 注意：不再从cleanContent中删除dataBlock
-  // 让它们保留在内容中，作为文章内容的一部分渲染
-  // 这样dataBlock就会插在文章的段落之间
-  
+
+  // 提取引用块
   const firstSectionIndex = content.indexOf('[section]:');
   const headContent = firstSectionIndex === -1 ? content : content.substring(0, firstSectionIndex);
-  
+
   const quoteBlockRegex = /^> (.+)$/gm;
   const quoteBlocks = [];
   let lastMatchEnd = -1;
   let currentQuote = null;
-  
+
   while ((match = quoteBlockRegex.exec(headContent)) !== null) {
     if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
       if (currentQuote) {
@@ -358,11 +312,11 @@ function extractCustomTags(content) {
   if (currentQuote) {
     quoteBlocks.push(currentQuote.trim());
   }
-  
+
   if (quoteBlocks.length > 0) {
     tags.quoteBlocks = quoteBlocks;
   }
-  
+
   const cleanFirstSectionIndex = cleanContent.indexOf('[section]:');
   if (cleanFirstSectionIndex !== -1) {
     const headCleanPart = cleanContent.substring(0, cleanFirstSectionIndex);
@@ -371,10 +325,10 @@ function extractCustomTags(content) {
     const cleanHeadAfterRemove = headCleanPart.replace(headQuoteBlockRegex, '');
     cleanContent = cleanHeadAfterRemove + bodyCleanPart;
   }
-  
+
   cleanContent = cleanContent.replace(/\n{3,}/g, '\n\n');
   cleanContent = cleanContent.replace(/^: #\s*$/gm, '');
-  
+
   if (inSection) {
     if (currentArticleMeta && (currentArticleMeta.from || currentArticleMeta.fromStr || currentArticleMeta.tags.length > 0)) {
       currentMeta.articleMeta.push({ ...currentArticleMeta });
@@ -383,11 +337,11 @@ function extractCustomTags(content) {
       sectionArticleMeta.push({ ...currentMeta });
     }
   }
-  
+
   if (headlineTags.length > 0) {
     tags.headlineTags = headlineTags;
   }
-  
+
   return { tags, cleanContent };
 }
 

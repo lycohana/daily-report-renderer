@@ -273,6 +273,29 @@ number: 002
 | weather | string | 天气信息 |
 | read_time | string | 阅读时长 |
 | number | string | 期号 |
+| form | string | 来源信息，格式：`名称|URL,名称|URL,...` |
+
+**form 字段格式示例:**
+
+```yaml
+form: AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog,AI News|https://ainews.com
+```
+
+**解析结果:**
+
+```javascript
+formInfo = [
+  { name: 'AIBase', url: 'https://www.aibase.com' },
+  { name: 'GitHub Blog', url: 'https://github.com/blog' },
+  { name: 'AI News', url: 'https://ainews.com' }
+];
+```
+
+**支持格式:**
+- `名称|URL` - 名称和链接
+- `名称 - URL` - 使用短横线分隔
+- `名称` - 仅名称，无链接
+- `来源1|URL1,来源2|URL2,来源3` - 多个来源用逗号分隔
 
 ### 自定义标签
 
@@ -288,6 +311,51 @@ number: 002
 | `[icon:emoji]`: # | 章节标题前 | 章节图标 |
 | `[sum:摘要]`: # | 章节/文章中 | 摘要内容 |
 | `[think:思考]`: # | 章节/文章中 | 思考内容 |
+
+### 区块标签
+
+#### 天气数据块
+
+使用 `<weather>` 标签在文章内容中嵌入天气预报卡片（横向排列）:
+
+```markdown
+<weather>
+<day>周一|东莞|☀️|晴|26°C/17°C</day>
+<day>周二|东莞|⛅|多云|25°C/16°C</day>
+<day>周三|深圳|🌧️|雨|24°C/15°C</day>
+</weather>
+```
+
+**数据格式:**
+- 每个 `<day>` 标签包含用 `|` 分隔的5个字段：`日期|城市|图标|天气状况|温度`
+- 温度格式：`最高温/最低温`（如 `26°C/17°C`）
+
+**渲染结果:**
+
+```html
+<div class="weather-grid">
+  <div class="weather-item">
+    <div class="weather-icon">☀️</div>
+    <div class="weather-city">东莞</div>
+    <div class="weather-condition">晴</div>
+    <div class="weather-temp">26°C/17°C</div>
+    <div class="weather-day">周一</div>
+  </div>
+  <!-- 更多天气项... -->
+</div>
+```
+
+**CSS 类名:**
+
+| 类名 | 描述 |
+|------|------|
+| .weather-grid | 天气网格容器 |
+| .weather-item | 单个天气卡片 |
+| .weather-icon | 天气图标 |
+| .weather-city | 城市名称 |
+| .weather-condition | 天气状况 |
+| .weather-temp | 温度 |
+| .weather-day | 日期 |
 
 ### 数据块
 
