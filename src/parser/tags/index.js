@@ -148,12 +148,15 @@ class TagRegistry {
       tags.articles = true;
     }
 
-    // 处理区块 (data, quote)
+    // 处理区块 (data, quote, weather)
     if (results.data) {
       tags.data = results.data.map(d => d.data);
     }
     if (results.quote) {
       tags.quoteBlocks = results.quote.map(r => r.data.content);
+    }
+    if (results.weather) {
+      tags.weather = results.weather.map(w => w.data);
     }
 
     return tags;

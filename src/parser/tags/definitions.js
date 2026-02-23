@@ -159,4 +159,55 @@ module.exports = [
     extract: (match) => ({ content: match[1] }),
     clean: null, // 保留在内容中
   },
+
+  // <weather>...</weather> - 天气数据块
+  // 支持格式：
+  // - 带城市: <day>周一|东莞|☀️|晴|26°C/17°C</day> (5段)
+  // - 不带城市: <day>周一|☀️|晴|26°C/17°C</day> (4段)
+  // - 可选参数 center 居中: <weather center>
+  {
+    name: 'weather',
+    type: 'block',
+    syntax: /<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g,
+    scope: ['headline', 'section', 'article'],
+    maxOccurrences: Infinity,
+    extract: (match) => {
+      const dayRegex = /<day>([^<]+)<\/day>/g;
+      const items = [];
+      let m;
+      const center = match[0].includes('center');
+      while ((m = dayRegex.exec(match[1])) !== null) {
+        const parts = m[1].split('|');
+        if (parts.length >= 4) {
+          // 支持省略城市的格式: 周一|☀️|晴|26°C/17°C
+          // 或完整格式: 周一|东莞|☀️|晴|26°C/17°C
+          let day, city, icon, condition, temp;
+          if (parts.length === 4) {
+            // 无城市: 日期|图标|天气|温度
+            day = parts[0].trim();
+            city = null;
+            icon = parts[1].trim();
+            condition = parts[2].trim();
+            temp = parts[3].trim();
+          } else {
+            // 有城市: 日期|城市|图标|天气|温度
+            day = parts[0].trim();
+            city = parts[1].trim();
+            icon = parts[2].trim();
+            condition = parts[3].trim();
+            temp = parts[4].trim();
+          }
+          items.push({
+            day,
+            city,
+            icon,
+            condition,
+            temp
+          });
+        }
+      }
+      return items.length > 0 ? { items, center } : null;
+    },
+    clean: null,
+  },
 ];

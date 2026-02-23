@@ -62,6 +62,26 @@ Claude Code 3.0在SWE-bench测试中达到92.3%的准确率。<data>
 VSCode扩展市场持续增长。
 `;
 
+  const sampleMarkdownWithWeather = `---
+title: 2026-2-24
+weather: 东莞 · 晴 27°C/18°C
+read_time: 约 5 分钟
+---
+[head]: #
+# 天气预报测试
+
+[section]: #
+[intro:天气预报]: #
+[icon]: 🌤️]
+# 本周天气
+
+<weather>
+<day>周一|东莞|☀️|晴|26°C/17°C</day>
+<day>周二|东莞|⛅|多云|25°C/16°C</day>
+<day>周三|深圳|🌧️|雨|24°C/15°C</day>
+</weather>
+`;
+
   describe('parseFrontMatter', () => {
     test('should parse front matter correctly', () => {
       const { frontMatter, content } = markdownParser.parseFrontMatter(sampleMarkdown);
@@ -188,7 +208,7 @@ form: 微信公众号AIdaily
   describe('Data Block Rendering', () => {
     test('should convert data blocks to HTML in headSection', () => {
       const result = markdownParser.parseMarkdown(sampleMarkdownWithDataBlocks);
-      
+
       expect(result.headSectionHtml).toContain('front-stats');
       expect(result.headSectionHtml).toContain('98.7%');
       expect(result.headSectionHtml).toContain('复杂任务完成率');
@@ -196,21 +216,90 @@ form: 微信公众号AIdaily
 
     test('should convert data blocks to HTML in htmlContent', () => {
       const result = markdownParser.parseMarkdown(sampleMarkdownWithDataBlocks);
-      
+
       expect(result.htmlContent).toContain('front-stats');
     });
 
     test('should handle multiple data block items', () => {
       const result = markdownParser.parseMarkdown(sampleMarkdownWithDataBlocks);
-      
+
       expect(result.headSectionHtml).toContain('100万');
       expect(result.headSectionHtml).toContain('Token上下文');
     });
 
     test('should add data-inline attribute to front-stats', () => {
       const result = markdownParser.parseMarkdown(sampleMarkdownWithDataBlocks);
-      
+
       expect(result.headSectionHtml).toContain('data-inline="true"');
+    });
+  });
+
+  describe('Weather Block Tag', () => {
+    test('should extract weather tag from markdown', () => {
+      const { tags } = markdownParser.extractCustomTags(sampleMarkdownWithWeather);
+
+      expect(tags.weather).toBeDefined();
+      expect(tags.weather.length).toBe(1);
+    });
+
+    test('should parse weather day items correctly', () => {
+      const { tags } = markdownParser.extractCustomTags(sampleMarkdownWithWeather);
+      const weatherData = tags.weather[0];
+
+      // New structure: { items: [...], center: boolean }
+      expect(weatherData.items.length).toBe(3);
+      expect(weatherData.items[0].day).toBe('周一');
+      expect(weatherData.items[0].city).toBe('东莞');
+      expect(weatherData.items[0].icon).toBe('☀️');
+      expect(weatherData.items[0].condition).toBe('晴');
+      expect(weatherData.items[0].temp).toBe('26°C/17°C');
+    });
+
+    test('should handle weather tag in parseMarkdown result', () => {
+      const result = markdownParser.parseMarkdown(sampleMarkdownWithWeather);
+
+      expect(result.customTags.weather).toBeDefined();
+      expect(result.customTags.weather[0].items.length).toBe(3);
+      expect(result.customTags.weather[0].items[1].day).toBe('周二');
+      expect(result.customTags.weather[0].items[2].city).toBe('深圳');
+    });
+
+    test('should not extract weather with insufficient data', () => {
+      const markdownWithInvalidWeather = `---
+title: Test
+---
+# Test
+<weather>
+<day>周一|东莞</day>
+</weather>
+`;
+      const { tags } = markdownParser.extractCustomTags(markdownWithInvalidWeather);
+
+      // When weather data has insufficient parts (less than 4), extract returns null
+      // and the weather tag won't be added to the tags object
+      expect(tags.weather).toBeUndefined();
+    });
+
+    test('should support weather without city (4-part format)', () => {
+      const markdownWithWeatherNoCity = `---
+title: Test
+---
+# Test
+<weather center>
+<day>周一|☀️|晴|26°C/17°C</day>
+<day>周二|⛅|多云|25°C/16°C</day>
+</weather>
+`;
+      const { tags } = markdownParser.extractCustomTags(markdownWithWeatherNoCity);
+
+      expect(tags.weather).toBeDefined();
+      expect(tags.weather[0].center).toBe(true);
+      expect(tags.weather[0].items.length).toBe(2);
+      expect(tags.weather[0].items[0].city).toBeNull();
+      expect(tags.weather[0].items[0].day).toBe('周一');
+      expect(tags.weather[0].items[0].icon).toBe('☀️');
+      expect(tags.weather[0].items[1].city).toBeNull();
+      expect(tags.weather[0].items[1].day).toBe('周二');
     });
   });
 

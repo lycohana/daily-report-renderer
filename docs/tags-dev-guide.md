@@ -290,6 +290,77 @@ const parsed = markdownParser.parseMarkdown(content);
 </div>
 ```
 
+### 完整示例：新增天气卡片区块
+
+```javascript
+// 定义
+{
+  name: 'weather',
+  type: 'block',
+  syntax: /<weather>([\s\S]*?)<\/weather>/g,
+  scope: ['headline', 'section', 'article'],
+  maxOccurrences: Infinity,
+  extract: (match) => {
+    const dayRegex = /<day>([^<]+)<\/day>/g;
+    const items = [];
+    let m;
+    while ((m = dayRegex.exec(match[1])) !== null) {
+      const parts = m[1].split('|');
+      if (parts.length >= 5) {
+        items.push({
+          day: parts[0].trim(),
+          city: parts[1].trim(),
+          icon: parts[2].trim(),
+          condition: parts[3].trim(),
+          temp: parts[4].trim()
+        });
+      }
+    }
+    return items.length > 0 ? items : null;
+  },
+  clean: null,
+},
+```
+
+```markdown
+<!-- 使用 -->
+<weather>
+<day>周一|东莞|☀️|晴|26°C/17°C</day>
+<day>周二|东莞|⛅|多云|25°C/16°C</day>
+<day>周三|深圳|🌧️|雨|24°C/15°C</day>
+</weather>
+```
+
+```ejs
+<!-- CSS 样式 -->
+<style>
+.weather-grid{display:flex;gap:12px;flex-wrap:wrap;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0}
+.weather-item{flex:1;min-width:100px;max-width:150px;background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.weather-icon{font-size:2rem;margin-bottom:4px}
+.weather-city{font-weight:600;color:#1565c0;font-size:.9rem}
+.weather-condition{color:#757575;font-size:.85rem}
+.weather-temp{color:#424242;font-size:.85rem;margin-top:4px}
+.weather-day{font-size:.75rem;color:#9e9e9e;margin-top:8px;padding-top:8px;border-top:1px dashed #e0e0e0}
+</style>
+
+<!-- 渲染 -->
+<% if (customTags.weather) { %>
+<div class="weather-grid">
+  <% customTags.weather.forEach(w => { %>
+    <% w.data.forEach(day => { %>
+    <div class="weather-item">
+      <div class="weather-icon"><%= day.icon %></div>
+      <div class="weather-city"><%= day.city %></div>
+      <div class="weather-condition"><%= day.condition %></div>
+      <div class="weather-temp"><%= day.temp %></div>
+      <div class="weather-day"><%= day.day %></div>
+    </div>
+    <% }); %>
+  <% }); %>
+</div>
+<% } %>
+```
+
 ---
 
 ## 标签作用域
