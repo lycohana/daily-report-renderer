@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日报列表 - <%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink-black:#1a1a1a;--paper-bg:#f5f2eb;--accent-red:#c41e3a;--accent-blue:#1e3a5f;--accent-gold:#b8860b;--text-dark:#2c2c2c;--text-muted:#666;--border-color:#d4d0c8}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans SC','Noto Serif SC',serif;background:var(--paper-bg);color:var(--text-dark);line-height:1.8;min-height:100vh;padding:30px 20px 60px;background-image:linear-gradient(90deg,transparent 79px,#e5e2db 79px,#e5e2db 81px,transparent 81px),linear-gradient(#e5e2db 1px,transparent 1px);background-size:100% 28px}
+    .container{max-width:900px;margin:0 auto;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,.12)}
+    .header{text-align:center;padding:32px 40px;border-bottom:4px solid var(--ink-black);background:linear-gradient(180deg,#faf9f6 0%,#fff 100%)}
+    .header h1{font-family:'Noto Serif SC',serif;font-size:2.4rem;font-weight:900;letter-spacing:8px;margin-bottom:16px;color:var(--ink-black)}
+    .header .subtitle{font-size:.9rem;color:var(--text-muted)}
+    .nav-links{display:flex;justify-content:center;gap:24px;padding:16px;background:#faf9f7;border-bottom:2px solid var(--border-color)}
+    .nav-link{color:var(--accent-blue);text-decoration:none;font-size:.9rem;padding:8px 16px;border-radius:6px;transition:all .3s}
+    .nav-link:hover{background:var(--accent-blue);color:#fff}
+    .nav-link.active{background:var(--accent-red);color:#fff}
+    .list-content{padding:24px 40px}
+    .list-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--border-color)}
+    .list-title{font-family:'Noto Serif SC',serif;font-size:1.2rem;font-weight:700;color:var(--ink-black)}
+    .list-count{font-size:.85rem;color:var(--text-muted)}
+    .report-list{list-style:none;padding:0;margin:0}
+    .report-item{display:flex;gap:16px;padding:20px;margin-bottom:16px;background:#fff;border:1px solid #e8e5df;border-radius:10px;transition:all .3s;text-decoration:none;color:inherit}
+    .report-item:hover{border-color:var(--accent-blue);transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.1)}
+    .report-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--accent-red),#e85a71);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .report-icon svg{width:24px;height:24px;fill:#fff}
+    .report-info{flex:1;min-width:0}
+    .report-title{font-size:1.1rem;font-weight:700;color:var(--ink-black);margin-bottom:6px;line-height:1.4}
+    .report-meta{display:flex;gap:16px;font-size:.8rem;color:var(--text-muted);flex-wrap:wrap}
+    .report-meta span{display:flex;align-items:center;gap:4px}
+    .report-arrow{margin-left:auto;display:flex;align-items:center;color:var(--text-muted);transition:transform .3s}
+    .report-item:hover .report-arrow{transform:translateX(4px);color:var(--accent-blue)}
+    .empty-state{text-align:center;padding:60px 20px}
+    .empty-icon{width:80px;height:80px;margin:0 auto 20px;background:#f0ede8;border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .empty-icon svg{width:40px;height:40px;fill:var(--text-muted)}
+    .empty-title{font-size:1.2rem;font-weight:600;color:var(--text-dark);margin-bottom:8px}
+    .empty-desc{font-size:.9rem;color:var(--text-muted)}
+    .loading{text-align:center;padding:60px 20px}
+    .loading-spinner{display:inline-block;width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--accent-red);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .footer{text-align:center;padding:24px;background:var(--ink-black);color:#999;font-size:.78rem}
+    .footer p{margin-bottom:5px}
+    @media(max-width:768px){.header,.list-content,.nav-links{padding:20px}.header h1{font-size:1.8rem;letter-spacing:4px}.report-item{flex-direction:column;gap:12px}.report-arrow{display:none}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>历史日报</h1>
+      <p class="subtitle">每日AI资讯与热点深度分析</p>
+    </header>
+    
+    <nav class="nav-links">
+      <a href="/" class="nav-link">最新日报</a>
+      <a href="/list" class="nav-link active">历史列表</a>
+    </nav>
+
+    <main class="list-content">
+      <div class="list-header">
+        <h2 class="list-title">全部日报</h2>
+        <span class="list-count">共 <%= reports.length %> 期</span>
+      </div>
+
+      <% if (reports.length > 0) { %>
+      <ul class="report-list">
+        <% reports.forEach(function(report) { %>
+        <a href="/report/<%= report.filename %>" class="report-item">
+          <div class="report-icon">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+          </div>
+          <div class="report-info">
+            <h3 class="report-title"><%= report.title %></h3>
+            <div class="report-meta">
+              <span>第 <%= report.edition %> 期</span>
+              <% if (report.date) { %>
+              <span><%= report.date.toLocaleDateString('zh-CN', {year: 'numeric', month: 'long', day: 'numeric'}) %></span>
+              <% } %>
+            </div>
+          </div>
+          <div class="report-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+          </div>
+        </a>
+        <% }); %>
+      </ul>
+      <% } else { %>
+      <div class="empty-state">
+        <div class="empty-icon">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>
+        </div>
+        <h3 class="empty-title">暂无日报</h3>
+        <p class="empty-desc">还没有生成的日报内容</p>
+      </div>
+      <% } %>
+    </main>
+
+    <footer class="footer">
+      <p>每日日报 - 自动化生成</p>
+      <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
+    </footer>
+  </div>
+</body>
+</html>

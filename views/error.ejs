@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>错误 - <%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink-black:#1a1a1a;--paper-bg:#f5f2eb;--accent-red:#c41e3a;--accent-blue:#1e3a5f;--text-dark:#2c2c2c;--text-muted:#666;--border-color:#d4d0c8}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Noto Sans SC','Noto Serif SC',serif;background:var(--paper-bg);color:var(--text-dark);line-height:1.8;min-height:100vh;padding:30px 20px 60px;background-image:linear-gradient(90deg,transparent 79px,#e5e2db 79px,#e5e2db 81px,transparent 81px),linear-gradient(#e5e2db 1px,transparent 1px);background-size:100% 28px}
+    .container{max-width:600px;margin:0 auto;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,.12);border-radius:16px;overflow:hidden}
+    .error-content{padding:60px 40px;text-align:center}
+    .error-code{display:inline-block;font-size:5rem;font-weight:900;color:var(--accent-red);opacity:0.2;position:absolute;left:50%;transform:translateX(-50%)}
+    .error-icon{width:100px;height:100px;margin:0 auto 24px;background:linear-gradient(135deg,#fef3f3,#fff);border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .error-icon svg{width:48px;height:48px;fill:var(--accent-red)}
+    .error-title{font-family:'Noto Serif SC',serif;font-size:1.8rem;font-weight:700;color:var(--ink-black);margin-bottom:12px;position:relative}
+    .error-message{font-size:1rem;color:var(--text-muted);margin-bottom:32px}
+    .error-code-badge{display:inline-block;padding:4px 12px;background:#f0ede8;border-radius:4px;font-size:.75rem;color:var(--text-muted);font-family:monospace}
+    .nav-links{display:flex;justify-content:center;gap:16px;padding:20px;background:#faf9f7;border-top:2px solid var(--border-color)}
+    .nav-link{color:var(--accent-blue);text-decoration:none;font-size:.9rem;padding:10px 20px;border-radius:6px;transition:all .3s;background:#fff;border:1px solid var(--border-color)}
+    .nav-link:hover{background:var(--accent-blue);color:#fff;border-color:var(--accent-blue)}
+    .footer{text-align:center;padding:16px;background:var(--ink-black);color:#999;font-size:.75rem}
+    @media(max-width:768px){.error-content{padding:40px 20px}.error-icon{width:80px;height:80px}.error-icon svg{width:36px;height:36px}.error-title{font-size:1.4rem}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="error-content">
+      <span class="error-code"><%= code %></span>
+      <div class="error-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+      </div>
+      <h1 class="error-title"><%= title %></h1>
+      <p class="error-message"><%= message %></p>
+      <span class="error-code-badge">Error Code: <%= code %></span>
+    </div>
+    
+    <nav class="nav-links">
+      <a href="/" class="nav-link">返回首页</a>
+      <a href="/list" class="nav-link">查看列表</a>
+    </nav>
+    
+    <footer class="footer">
+      <p>每日日报 - 自动化生成</p>
+    </footer>
+  </div>
+</body>
+</html>

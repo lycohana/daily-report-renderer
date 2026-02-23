@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ink-black:#1a1a1a;--paper-bg:#f5f2eb;--accent-red:#c41e3a;--accent-blue:#1e3a5f;--accent-gold:#b8860b;--accent-green:#2d5a27;--text-dark:#2c2c2c;--text-muted:#666;--border-color:#d4d0c8}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:'Noto Sans SC','Noto Serif SC',serif;background:var(--paper-bg);color:var(--text-dark);line-height:1.8;min-height:100vh;padding:30px 20px 60px;background-image:linear-gradient(90deg,transparent 79px,#e5e2db 79px,#e5e2db 81px,transparent 81px),linear-gradient(#e5e2db 1px,transparent 1px);background-size:100% 28px}
+    .container{max-width:900px;margin:0 auto;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,.12)}
+    .masthead{padding:32px 40px;text-align:center;border-bottom:4px solid var(--ink-black);background:linear-gradient(180deg,#faf9f6 0%,#fff 100%)}
+    .masthead h1{font-family:'Noto Serif SC',serif;font-size:2.8rem;font-weight:900;letter-spacing:12px;margin-bottom:10px;color:var(--ink-black)}
+    .masthead .meta{display:flex;justify-content:center;gap:28px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}
+    .edition{font-weight:600;color:var(--accent-red)}
+    .front-page{padding:36px 40px;background:linear-gradient(135deg,#faf9f6 0%,#fff 50%,#f8f6f2 100%);border-bottom:2px solid var(--border-color)}
+    .front-label{display:inline-flex;align-items:center;gap:8px;background:var(--accent-red);color:#fff;font-size:.7rem;font-weight:600;padding:4px 12px;letter-spacing:1px;margin-bottom:18px}
+    .front-headline{font-family:'Noto Serif SC',serif;font-size:2rem;font-weight:900;line-height:1.4;margin-bottom:18px;color:var(--ink-black)}
+    .front-headline a{color:inherit;text-decoration:none;transition:color .3s}
+    .front-headline a:hover{color:var(--accent-red)}
+    .front-summary{font-size:1.1rem;color:var(--text-muted);margin-bottom:20px;line-height:1.7}
+    .front-stats{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:24px;padding:20px;background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px}
+    .front-stat{flex:1;min-width:120px;text-align:center;padding:12px}
+    .front-stat-value{font-size:1.6rem;font-weight:700;color:var(--accent-blue)}
+    .front-stat-label{font-size:.78rem;color:var(--text-muted);margin-top:4px}
+    .front-detail{font-size:.95rem;color:var(--text-dark);line-height:1.8;margin-bottom:20px;padding:24px;background:#fff;border-radius:12px;border-left:4px solid var(--accent-red);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .front-detail p{margin-bottom:16px;padding-bottom:16px;border-bottom:1px dashed #eee}
+    .front-detail p:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+    .front-detail strong{color:var(--accent-blue)}
+    .front-tags{display:flex;gap:8px;flex-wrap:wrap}
+    .front-tag{font-size:.72rem;padding:4px 12px;background:#f0ede8;border-radius:20px;color:var(--text-muted)}
+    .toc{padding:28px 40px;background:#faf9f7;border-bottom:2px solid var(--border-color)}
+    .toc-title{font-family:'Noto Serif SC',serif;font-size:1rem;font-weight:700;color:var(--ink-black);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .toc-title::before{content:'';display:inline-block;width:4px;height:16px;background:var(--accent-red);border-radius:2px}
+    .toc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+    .toc-item{display:flex;gap:12px;padding:14px;background:#fff;border-radius:8px;border:1px solid #e8e5df;transition:all .3s;cursor:pointer;text-decoration:none}
+    .toc-item:hover{border-color:var(--accent-blue);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+    .toc-number{width:28px;height:28px;background:var(--accent-blue);color:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:600;flex-shrink:0}
+    .toc-content{flex:1}
+    .toc-heading{font-size:.9rem;font-weight:600;color:var(--ink-black);margin-bottom:4px}
+    .toc-desc{font-size:.8rem;color:var(--text-muted);line-height:1.5}
+    .main-content{padding:34px 40px}
+    .section{margin-bottom:56px;scroll-margin-top:20px}
+    .section:last-child{margin-bottom:0}
+    .section-header{display:flex;align-items:center;gap:14px;margin-bottom:28px;padding-bottom:14px;border-bottom:3px solid var(--accent-blue)}
+    .section-icon{font-size:1.4rem}
+    .section-title{font-family:'Noto Serif SC',serif;font-size:1.2rem;font-weight:700;letter-spacing:2px;color:var(--accent-blue)}
+    .section-number{margin-left:auto;font-size:.8rem;color:var(--text-muted)}
+    .article{margin-bottom:36px;padding-bottom:36px;border-bottom:1px dotted var(--border-color)}
+    .article:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+    .article-title{font-weight:700;font-size:1.15rem;margin-bottom:12px;line-height:1.4}
+    .article-title a{color:var(--ink-black);text-decoration:none;transition:color .3s}
+    .article-title a:hover{color:var(--accent-red)}
+    .article-meta{font-size:.8rem;color:var(--text-muted);margin-bottom:14px}
+    .article-tag{display:inline-block;background:#e8e6e1;padding:2px 10px;border-radius:4px;margin-right:8px;font-size:.72rem}
+    .article-desc{font-size:.95rem;color:var(--text-dark);line-height:1.75}
+    .article-desc p{margin-bottom:12px}
+    .article-desc p:last-child{margin-bottom:0}
+    .article-source{font-size:.78rem;color:var(--accent-blue);margin-top:14px}
+    .article-source a{color:var(--accent-blue);text-decoration:none}
+    .article-source a:hover{text-decoration:underline}
+    .analysis-box{margin-top:28px;padding:20px;background:#f8f9fa;border-left:4px solid var(--accent-blue);border-radius:0 8px 8px 0}
+    .analysis-title{font-size:.85rem;font-weight:600;color:var(--accent-blue);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+    .analysis-title::before{content:'■';color:var(--accent-blue);font-size:.6rem}
+    .analysis-content{font-size:.92rem;color:var(--text-dark);line-height:1.65}
+    .thought-box{margin-top:18px;padding:16px;background:linear-gradient(135deg,#fef9e7,#fffcf5);border:1px solid #f0e6c8;border-radius:8px}
+    .thought-title{font-size:.8rem;font-weight:600;color:var(--accent-gold);margin-bottom:8px;display:flex;align-items:center;gap:5px}
+    .thought-title::before{content:'思考';font-size:.7rem}
+    .thought-content{font-size:.88rem;color:var(--text-dark);font-style:italic;line-height:1.6}
+    .divider{margin:32px 0;border:none;border-top:1px dashed var(--border-color)}
+    .dynamic-list{list-style:none;margin:0;padding:0}
+    .dynamic-item{padding:12px 0;border-bottom:1px dashed #eee;display:flex;gap:8px;align-items:flex-start}
+    .dynamic-item:last-child{border-bottom:none}
+    .dynamic-time{font-size:.72rem;color:var(--text-muted);min-width:70px;flex-shrink:0}
+    .dynamic-content{font-size:.88rem;color:var(--text-dark);line-height:1.5}
+    .dynamic-content .upname{font-weight:600;color:var(--accent-blue)}
+    .dynamic-content .highlight{color:var(--accent-red);font-weight:500}
+    .notes-section{padding:32px 40px;background:#f9f7f3;border-top:2px solid var(--border-color)}
+    .notes-title{font-family:'Noto Serif SC',serif;font-size:1.1rem;font-weight:700;color:var(--accent-gold);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .notes-title::before{content:'';display:inline-block;width:4px;height:20px;background:var(--accent-gold);border-radius:2px;margin-right:8px}
+    .notes-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    .note-card{background:#fff;padding:18px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.05)}
+    .note-card-title{font-size:.85rem;font-weight:600;color:var(--text-dark);margin-bottom:10px}
+    .note-card-content{font-size:.88rem;color:var(--text-muted)}
+    .note-card-content ul{margin-left:16px}
+    .note-card-content li{margin-bottom:6px}
+    .footer{text-align:center;padding:24px;background:var(--ink-black);color:#999;font-size:.78rem}
+    .footer p{margin-bottom:5px}
+    .loading{text-align:center;padding:60px 20px;color:var(--text-muted)}
+    .loading-spinner{display:inline-block;width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--accent-red);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:768px){.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}}
+    @media print{body{background:#fff;padding:0}.container{box-shadow:none}.section{break-inside:avoid}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="masthead">
+      <h1>每日日报</h1>
+      <div class="meta">
+        <span class="edition">第 <%= edition %> 期</span>
+        <% if (frontMatter && frontMatter.date) { %>
+        <span><%= frontMatter.date %></span>
+        <% } %>
+        <% if (frontMatter && frontMatter.weather) { %>
+        <span><%= frontMatter.weather %></span>
+        <% } %>
+        <% if (frontMatter && frontMatter.read_time) { %>
+        <span><%= frontMatter.read_time %></span>
+        <% } %>
+      </div>
+    </header>
+
+    <% 
+    let sectionsList = [];
+    let tocItems = [];
+    
+    if (sections && sections.length > 0) {
+      sections.forEach((section, index) => {
+        if (section.type === 'headline') {
+          // headSection already passed from server
+        } else {
+          sectionsList.push(section);
+          if (section.intro) {
+            tocItems.push({
+              title: section.title,
+              intro: section.intro,
+              id: 'section-' + index
+            });
+          }
+        }
+      });
+    }
+    
+    // If headSection was passed directly, use it
+    if (!headSection && typeof _headSection !== 'undefined') {
+      headSection = _headSection;
+    }
+    %>
+    
+    <% if (headSection) { %>
+    <div class="front-page">
+      <div class="front-label">头版头条</div>
+      <h2 class="front-headline">
+        <% if (customTags && (customTags.headFrom || customTags.from)) { %>
+        <a href="<%= customTags.headFrom || customTags.from %>" target="_blank"><%= headSection.title %></a>
+        <% } else { %>
+        <%= headSection.title %>
+        <% } %>
+      </h2>
+      
+      <% if (headSectionHtml) { %>
+      <p class="front-summary"><%- headSectionHtml %></p>
+      <% } %>
+      
+      <% // dataBlocks now rendered inline in htmlContent via markdownParser post-processing %>
+      
+      <% if (headSection && headSection.quoteBlocks && headSection.quoteBlocks.length > 0) { %>
+      <div class="front-detail">
+        <% headSection.quoteBlocks.forEach(quote => { %>
+        <%- md.render(quote) %>
+        <% }); %>
+      </div>
+      <% } %>
+      
+      <% if (customTags && customTags.headlineTags && customTags.headlineTags.length > 0) { %>
+      <div class="front-tags">
+        <% customTags.headlineTags.forEach(tag => { %>
+        <span class="front-tag"><%= tag %></span>
+        <% }); %>
+      </div>
+      <% } else if (customTags && customTags.tag && customTags.tag.length > 0) { %>
+      <div class="front-tags">
+        <% customTags.tag.forEach(tag => { %>
+        <span class="front-tag"><%= tag %></span>
+        <% }); %>
+      </div>
+      <% } %>
+    </div>
+    <% } %>
+    
+    <% if (tocItems.length > 0) { %>
+    <div class="toc">
+      <div class="toc-title">导读</div>
+      <div class="toc-grid">
+        <% tocItems.forEach((item, idx) => { %>
+        <a class="toc-item" href="#<%= item.id %>">
+          <div class="toc-number"><%= String(idx + 1).padStart(2, '0') %></div>
+          <div class="toc-content">
+            <div class="toc-heading"><%= item.title %></div>
+            <div class="toc-desc"><%= item.intro %></div>
+          </div>
+        </a>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+    
+    <div class="main-content">
+      <% 
+      const sectionIcons = ['🤖', '📂', '📺', '📱', '🌍', '🌤️'];
+      sectionsList.forEach((section, index) => { 
+        const sectionIcon = section.icon || sectionIcons[index % sectionIcons.length] || '📄';
+      %>
+      <div class="section" id="section-<%= index %>">
+        <div class="section-header">
+          <span class="section-icon"><%= sectionIcon %></span>
+          <h3 class="section-title"><%= section.title %></h3>
+          <span class="section-number">P<%= String(index + 1).padStart(2, '0') %></span>
+        </div>
+        
+        <% if (section.articles && section.articles.length > 0) { %>
+          <% section.articles.forEach(article => { %>
+          <div class="article">
+            <% if (article.title) { %>
+            <div class="article-title">
+              <% if (article.from) { %>
+              <a href="<%= article.from %>" target="_blank"><%= article.title %></a>
+              <% } else { %>
+              <%= article.title %>
+              <% } %>
+            </div>
+            <% } %>
+            
+            <% if (article.tags && article.tags.length > 0) { %>
+            <div class="article-meta">
+              <% article.tags.forEach(tag => { %>
+              <span class="article-tag"><%= tag %></span>
+              <% }); %>
+            </div>
+            <% } %>
+            
+            <% if (article.content) { %>
+            <div class="article-desc">
+              <%- renderMarkdown(article.content) %>
+            </div>
+            <% } %>
+            
+            <% if (article.quoteBlocks && article.quoteBlocks.length > 0) { %>
+            <div class="front-detail">
+              <% article.quoteBlocks.forEach(quote => { %>
+              <%- md.render(quote) %>
+              <% }); %>
+            </div>
+            <% } %>
+            
+            <% if (article.from) { %>
+            <div class="article-source">来源：<a href="<%= article.from %>" target="_blank"><%= article.fromStr || article.from %></a></div>
+            <% } %>
+          </div>
+          <% }); %>
+        <% } %>
+        
+        <% if (section.summary) { %>
+        <div class="analysis-box">
+          <div class="analysis-title">总结</div>
+          <div class="analysis-content"><%- section.summary %></div>
+        </div>
+        <% } %>
+      </div>
+      <% }); %>
+    </div>
+    
+    <% 
+    let hasGlobalThink = false;
+    sectionsList.forEach(section => {
+      if (section.think) hasGlobalThink = true;
+    });
+    %>
+    <% if (hasGlobalThink) { %>
+    <div class="thought-box">
+      <div class="thought-title">思考</div>
+      <div class="thought-content">
+        <% sectionsList.forEach(section => { %>
+          <% if (section.think) { %>
+          <p><%- section.think %></p>
+          <% } %>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <footer class="footer">
+      <p>每日日报 - 自动化生成</p>
+      <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
+    </footer>
+  </div>
+</body>
+</html>
