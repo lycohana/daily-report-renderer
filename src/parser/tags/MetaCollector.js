@@ -12,7 +12,7 @@ class MetaCollector {
       inArticles: false,
       sectionIndex: -1,
       articleIndex: 0,
-      hasHeadMarker: false,
+      hasHeadMarker: false
     };
 
     // 当前元数据
@@ -22,7 +22,7 @@ class MetaCollector {
       tags: [],
       icon: null,
       intro: null,
-      articleMeta: [],
+      articleMeta: []
     };
 
     // 当前文章元数据
@@ -49,41 +49,41 @@ class MetaCollector {
    */
   onMarker(markerName) {
     switch (markerName) {
-      case 'head':
-        this.state.hasHeadMarker = true;
-        break;
+    case 'head':
+      this.state.hasHeadMarker = true;
+      break;
 
-      case 'section':
-        // 保存当前文章的元数据到当前 section
-        if (this.state.inArticles && this.currentArticleMeta) {
-          this._saveArticleMeta();
-          this.currentArticleMeta = null;
-        }
+    case 'section':
+      // 保存当前文章的元数据到当前 section
+      if (this.state.inArticles && this.currentArticleMeta) {
+        this._saveArticleMeta();
+        this.currentArticleMeta = null;
+      }
         
-        this.state.sectionIndex++;
-        this.state.inSection = true;
-        this.state.inArticles = false;
-        this.state.articleIndex = 0;
-        this.currentDataBlockPosition = 'section';
-        // 创建新的当前元数据
-        this.currentMeta = {
-          from: null,
-          fromStr: null,
-          tags: [],
-          icon: null,
-          intro: null,
-          articleMeta: [],
-        };
-        // 立即保存一个空占位，以便 markdownParser.js 可以通过索引访问
-        this.sectionArticleMeta.push(this.currentMeta);
-        break;
+      this.state.sectionIndex++;
+      this.state.inSection = true;
+      this.state.inArticles = false;
+      this.state.articleIndex = 0;
+      this.currentDataBlockPosition = 'section';
+      // 创建新的当前元数据
+      this.currentMeta = {
+        from: null,
+        fromStr: null,
+        tags: [],
+        icon: null,
+        intro: null,
+        articleMeta: []
+      };
+      // 立即保存一个空占位，以便 markdownParser.js 可以通过索引访问
+      this.sectionArticleMeta.push(this.currentMeta);
+      break;
 
-      case 'articles':
-        this.state.inArticles = true;
-        break;
+    case 'articles':
+      this.state.inArticles = true;
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
   }
 
@@ -108,7 +108,7 @@ class MetaCollector {
           tags: [],
           icon: null,
           intro: null,
-          articleMeta: [],
+          articleMeta: []
         };
       }
       this.state.inArticles = false;
@@ -124,7 +124,7 @@ class MetaCollector {
         from: null,
         fromStr: null,
         tags: [],
-        isFirstArticle: this.currentMeta.articleMeta.length === 0,
+        isFirstArticle: this.currentMeta.articleMeta.length === 0
       };
       this.currentDataBlockPosition = 'article';
     }
@@ -136,103 +136,103 @@ class MetaCollector {
    * @param {string} value - 标签值
    * @param {Object} context - 上下文信息
    */
-  collect(name, value, context = {}) {
+  collect(name, value, _context = {}) {
     const { inArticles, inSection, inHeadline } = this.state;
 
     switch (name) {
-      case 'tag':
-        if (inArticles) {
-          if (!this.currentArticleMeta) {
-            this.currentArticleMeta = {
-              from: null,
-              fromStr: null,
-              tags: [],
-              isFirstArticle: false,
-            };
-          }
-          this.currentArticleMeta.tags.push(value);
-        } else if (inSection) {
-          // 注意：inSection 优先级高于 inHeadline
-          this.currentMeta.tags.push(value);
-        } else if (inHeadline) {
-          this.headlineTags.push(value);
+    case 'tag':
+      if (inArticles) {
+        if (!this.currentArticleMeta) {
+          this.currentArticleMeta = {
+            from: null,
+            fromStr: null,
+            tags: [],
+            isFirstArticle: false
+          };
         }
-        break;
+        this.currentArticleMeta.tags.push(value);
+      } else if (inSection) {
+        // 注意：inSection 优先级高于 inHeadline
+        this.currentMeta.tags.push(value);
+      } else if (inHeadline) {
+        this.headlineTags.push(value);
+      }
+      break;
 
-      case 'from':
-        if (inArticles) {
-          if (!this.currentArticleMeta) {
-            this.currentArticleMeta = {
-              from: null,
-              fromStr: null,
-              tags: [],
-              isFirstArticle: false,
-            };
-          }
-          this.currentArticleMeta.from = value;
-        } else if (inSection) {
-          // 注意：inSection 优先级高于 inHeadline
-          this.currentMeta.from = value;
-        } else if (inHeadline) {
-          // 头版头条的 from 需要保存到 headFrom
-          this.headFrom = value;
+    case 'from':
+      if (inArticles) {
+        if (!this.currentArticleMeta) {
+          this.currentArticleMeta = {
+            from: null,
+            fromStr: null,
+            tags: [],
+            isFirstArticle: false
+          };
         }
-        break;
+        this.currentArticleMeta.from = value;
+      } else if (inSection) {
+        // 注意：inSection 优先级高于 inHeadline
+        this.currentMeta.from = value;
+      } else if (inHeadline) {
+        // 头版头条的 from 需要保存到 headFrom
+        this.headFrom = value;
+      }
+      break;
 
-      case 'fromstr':
-        if (inArticles) {
-          if (!this.currentArticleMeta) {
-            this.currentArticleMeta = {
-              from: null,
-              fromStr: null,
-              tags: [],
-              isFirstArticle: false,
-            };
-          }
-          this.currentArticleMeta.fromStr = value;
-        } else if (inSection) {
-          this.currentMeta.fromStr = value;
+    case 'fromstr':
+      if (inArticles) {
+        if (!this.currentArticleMeta) {
+          this.currentArticleMeta = {
+            from: null,
+            fromStr: null,
+            tags: [],
+            isFirstArticle: false
+          };
         }
-        break;
+        this.currentArticleMeta.fromStr = value;
+      } else if (inSection) {
+        this.currentMeta.fromStr = value;
+      }
+      break;
 
-      case 'intro':
-        if (inSection && !inArticles) {
-          this.currentMeta.intro = value;
+    case 'intro':
+      if (inSection && !inArticles) {
+        this.currentMeta.intro = value;
+      }
+      break;
+
+    case 'icon':
+      if (inSection && !inArticles) {
+        this.currentMeta.icon = value;
+      }
+      break;
+
+    case 'sum':
+      // 摘要可以出现在任何地方
+      if (inArticles && this.currentArticleMeta) {
+        this.currentArticleMeta.sum = value;
+      } else {
+        this.currentMeta.sum = value;
+      }
+      break;
+
+    case 'think':
+      // 观点可以出现在任何地方
+      if (inArticles && this.currentArticleMeta) {
+        if (!this.currentArticleMeta.thinks) {
+          this.currentArticleMeta.thinks = [];
         }
-        break;
-
-      case 'icon':
-        if (inSection && !inArticles) {
-          this.currentMeta.icon = value;
+        this.currentArticleMeta.thinks.push(value);
+      } else {
+        if (!this.currentMeta.thinks) {
+          this.currentMeta.thinks = [];
         }
-        break;
+        this.currentMeta.thinks.push(value);
+      }
+      break;
 
-      case 'sum':
-        // 摘要可以出现在任何地方
-        if (inArticles && this.currentArticleMeta) {
-          this.currentArticleMeta.sum = value;
-        } else {
-          this.currentMeta.sum = value;
-        }
-        break;
-
-      case 'think':
-        // 观点可以出现在任何地方
-        if (inArticles && this.currentArticleMeta) {
-          if (!this.currentArticleMeta.thinks) {
-            this.currentArticleMeta.thinks = [];
-          }
-          this.currentArticleMeta.thinks.push(value);
-        } else {
-          if (!this.currentMeta.thinks) {
-            this.currentMeta.thinks = [];
-          }
-          this.currentMeta.thinks.push(value);
-        }
-        break;
-
-      default:
-        break;
+    default:
+      break;
     }
   }
 
@@ -249,7 +249,7 @@ class MetaCollector {
       }
       this.sectionDataBlocks[this.state.sectionIndex].push({
         type: 'section',
-        data: data,
+        data: data
       });
     } else if (this.currentDataBlockPosition === 'article') {
       if (!this.sectionDataBlocks[this.state.sectionIndex]) {
@@ -262,7 +262,7 @@ class MetaCollector {
       this.articleDataBlocks[this.state.sectionIndex].push({
         type: 'article',
         index: articleIdx,
-        data: data,
+        data: data
       });
     }
   }
@@ -307,10 +307,10 @@ class MetaCollector {
       dataBlocks: {
         headline: this.headlineDataBlocks,
         sections: this.sectionDataBlocks.filter((s) => s !== null && s !== undefined),
-        articles: this.articleDataBlocks.filter((a) => a !== null && a !== undefined),
+        articles: this.articleDataBlocks.filter((a) => a !== null && a !== undefined)
       },
       quoteBlocks: this.quoteBlocks,
-      weather: this.weather.length > 0 ? this.weather : undefined,
+      weather: this.weather.length > 0 ? this.weather : undefined
     };
   }
 

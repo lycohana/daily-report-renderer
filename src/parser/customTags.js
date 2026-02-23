@@ -18,5 +18,5 @@ function extractCustomTags(content) {
 }
 
 module.exports = {
-  extractCustomTags,
+  extractCustomTags
 };

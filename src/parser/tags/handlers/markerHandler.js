@@ -19,7 +19,7 @@ class MarkerHandler extends BaseHandler {
         results.push({
           name: this.name,
           match: match[0],
-          lineIndex: i,
+          lineIndex: i
         });
 
         // 执行 onMatch 回调
@@ -33,7 +33,9 @@ class MarkerHandler extends BaseHandler {
   }
 
   clean(content) {
-    if (!this.definition.clean) return content;
+    if (!this.definition.clean) {
+      return content;
+    }
     const regex = new RegExp(this.definition.syntax.source, 'gm');
     return content.replace(regex, '');
   }

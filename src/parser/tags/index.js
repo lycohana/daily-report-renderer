@@ -115,7 +115,9 @@ class TagRegistry {
    */
   collectStyles() {
     // 使用缓存避免重复计算
-    if (this.styleCache) return this.styleCache;
+    if (this.styleCache) {
+      return this.styleCache;
+    }
 
     const styles = [];
     const seen = new Set();
@@ -140,7 +142,9 @@ class TagRegistry {
    */
   getStylesHTML() {
     const styles = this.collectStyles();
-    if (!styles) return '';
+    if (!styles) {
+      return '';
+    }
     return `<style>${styles}</style>`;
   }
 

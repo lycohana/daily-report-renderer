@@ -95,15 +95,13 @@ function parseMarkdown(content) {
   let articleContent = [];
   let isFirstHash = true;
   // 注意：cleanContent 中 [head]: 已被清理，需要从 customTags 中判断
-  let hasHeadMarker = customTags.hasHeadMarker || !!customTags.headlineTags || !!customTags.headFrom;
+  const hasHeadMarker = customTags.hasHeadMarker || !!customTags.headlineTags || !!customTags.headFrom;
   let inSection = false;
   let currentSectionTags = [];
   let currentSectionIcon = null;
   let currentSectionIntro = null;
   let sectionIndex = -1;
   let articleIndex = 0;
-  let afterSectionHeader = false;
-  
   // 使用 customTags.sectionArticleMeta 来跟踪 section 元数据
   const sectionMetas = customTags.sectionArticleMeta || [];
   let currentSectionMetaIndex = 0;
@@ -162,7 +160,7 @@ function parseMarkdown(content) {
       };
       
       currentSectionMetaIndex++;
-      afterSectionHeader = true;
+      // afterSectionHeader = true; // Removed: unused variable
       continue;
     }
     
@@ -234,7 +232,7 @@ function parseMarkdown(content) {
       };
       
       currentSectionMetaIndex++;
-      afterSectionHeader = true;
+      // afterSectionHeader = true; // Removed: unused variable
       articleContent = [];
       articleIndex = 0;
       continue;
@@ -322,7 +320,7 @@ function parseMarkdown(content) {
         }
       }
       
-      afterSectionHeader = true;
+      // afterSectionHeader = true; // Removed: unused variable
       continue;
     }
     

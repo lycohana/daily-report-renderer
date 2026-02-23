@@ -31,7 +31,7 @@ class IconHandler extends BaseHandler {
         results.push({
           name: this.name,
           value: value,
-          lineIndex: i,
+          lineIndex: i
         });
 
         if (context?.collector) {

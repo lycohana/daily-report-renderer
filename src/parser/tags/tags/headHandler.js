@@ -27,7 +27,7 @@ class HeadHandler extends BaseHandler {
         results.push({
           name: this.name,
           match: match[0],
-          lineIndex: i,
+          lineIndex: i
         });
 
         if (context?.collector) {

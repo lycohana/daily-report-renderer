@@ -27,7 +27,7 @@ class DataHandler extends BaseHandler {
           name: this.name,
           data: parsedData,
           match: match[0],
-          index: match.index,
+          index: match.index
         });
 
         if (context?.collector) {

@@ -154,7 +154,7 @@ router.get('/', async (req, res) => {
             const itemsHtml = items.map(item => {
               const cityHtml = item.city 
                 ? `<div class="weather-city">${item.city}</div>` 
-                : `<div class="weather-city weather-city-placeholder">-</div>`;
+                : '<div class="weather-city weather-city-placeholder">-</div>';
               return `<div class="weather-item">
                 <div class="weather-icon">${item.icon}</div>
                 ${cityHtml}
@@ -209,7 +209,7 @@ router.get('/list', async (req, res) => {
               title: markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, report.basename),
               edition: markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, report.basename)
             };
-          } catch (e) {
+          } catch {
             return {
               ...report,
               title: report.basename
@@ -339,7 +339,7 @@ router.get('/report/:filename', async (req, res) => {
             const itemsHtml = items.map(item => {
               const cityHtml = item.city 
                 ? `<div class="weather-city">${item.city}</div>` 
-                : `<div class="weather-city weather-city-placeholder">-</div>`;
+                : '<div class="weather-city weather-city-placeholder">-</div>';
               return `<div class="weather-item">
                 <div class="weather-icon">${item.icon}</div>
                 ${cityHtml}

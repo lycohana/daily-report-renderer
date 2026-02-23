@@ -27,7 +27,7 @@ class ThinkHandler extends BaseHandler {
         results.push({
           name: this.name,
           value: match[1],
-          lineIndex: i,
+          lineIndex: i
         });
 
         if (context?.collector) {

@@ -18,7 +18,7 @@ class BaseHandler {
    * @param {Object} context - 上下文
    * @returns {Object|null} 解析结果
    */
-  parse(content, context) {
+  parse(_content, _context) {
     throw new Error('parse() must be implemented by subclass');
   }
 

@@ -14,7 +14,7 @@ module.exports = [
     scope: ['headline', 'section', 'article'],
     maxOccurrences: Infinity,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [from:xxx] - 来源URL
@@ -25,7 +25,7 @@ module.exports = [
     scope: ['section', 'article'],
     maxOccurrences: 1,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [fromstr:xxx] - 来源名称
@@ -36,7 +36,7 @@ module.exports = [
     scope: ['section', 'article'],
     maxOccurrences: 1,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [intro:xxx] - 章节简介
@@ -47,7 +47,7 @@ module.exports = [
     scope: ['section'],
     maxOccurrences: 1,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [icon:xxx] - 章节图标
@@ -61,7 +61,7 @@ module.exports = [
       const emojiMatch = match[1].match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu);
       return { value: emojiMatch ? emojiMatch[0] : match[1] };
     },
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [sum:xxx] - 摘要
@@ -72,7 +72,7 @@ module.exports = [
     scope: ['headline', 'section', 'article'],
     maxOccurrences: 1,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [think:xxx] - 观点
@@ -83,7 +83,7 @@ module.exports = [
     scope: ['headline', 'section', 'article'],
     maxOccurrences: Infinity,
     extract: (match) => ({ value: match[1] }),
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // ========== 标记标签 ==========
@@ -98,7 +98,7 @@ module.exports = [
     onMatch: (context) => {
       context.state.inHeadline = true;
     },
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [section]: # - 章节标记
@@ -112,7 +112,7 @@ module.exports = [
       context.state.inSection = true;
       context.state.sectionIndex++;
     },
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // [articles]: # - 文章列表标记
@@ -125,7 +125,7 @@ module.exports = [
     onMatch: (context) => {
       context.state.inArticles = true;
     },
-    clean: (match) => match[0],
+    clean: (match) => match[0]
   },
 
   // ========== 区块标签 ==========
@@ -146,7 +146,7 @@ module.exports = [
       }
       return items.length > 0 ? items : null;
     },
-    clean: null, // 保留在内容中，由渲染器处理
+    clean: null // 保留在内容中，由渲染器处理
   },
 
   // 引用块 >
@@ -157,7 +157,7 @@ module.exports = [
     scope: ['headline', 'section', 'article'],
     maxOccurrences: Infinity,
     extract: (match) => ({ content: match[1] }),
-    clean: null, // 保留在内容中
+    clean: null // 保留在内容中
   },
 
   // <weather>...</weather> - 天气数据块
@@ -208,6 +208,6 @@ module.exports = [
       }
       return items.length > 0 ? { items, center } : null;
     },
-    clean: null,
-  },
+    clean: null
+  }
 ];

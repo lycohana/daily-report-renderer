@@ -70,7 +70,7 @@ class QuoteHandler extends BaseHandler {
       results.push({
         name: this.name,
         data: { content: quoteBlocks.join('\n\n') },
-        match: quoteBlocks.join('\n'),
+        match: quoteBlocks.join('\n')
       });
 
       if (context?.collector) {
