@@ -97,7 +97,7 @@
     .weather-grid::-webkit-scrollbar{height:6px}
     .weather-grid::-webkit-scrollbar-track{background:transparent}
     .weather-grid::-webkit-scrollbar-thumb{background:#90caf9;border-radius:3px}
-    .weather-grid.weather-center{justify-content:flex-start}
+    .weather-grid.weather-center{justify-content:center}
     .weather-item{flex:0 0 auto;min-width:110px;max-width:130px;background:#fff;border-radius:12px;padding:14px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .2s ease}
     .weather-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
     .weather-icon{font-size:2rem;margin-bottom:4px}
@@ -167,14 +167,15 @@
       </h2>
       
       <% if (headSectionHtml) { %>
-      <p class="front-summary"><%- headSectionHtml %></p>
+      <div class="front-summary"><%- headSectionHtml %></div>
       <% } %>
       
       <% // dataBlocks now rendered inline in htmlContent via markdownParser post-processing %>
       
-      <% if (headSection && headSection.quoteBlocks && headSection.quoteBlocks.length > 0) { %>
+      <% if ((headSection.quoteBlocks && headSection.quoteBlocks.length > 0) || (customTags && customTags.quoteBlocks && customTags.quoteBlocks.length > 0)) { %>
       <div class="front-detail">
-        <% headSection.quoteBlocks.forEach(quote => { %>
+        <% const quoteBlocks = headSection.quoteBlocks || customTags.quoteBlocks; %>
+        <% quoteBlocks.forEach(quote => { %>
         <%- md.render(quote) %>
         <% }); %>
       </div>

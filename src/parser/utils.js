@@ -1,18 +1,18 @@
 /**
  * 工具函数模块
  * 
- * 包含从Front Matter中提取标题、期号等辅助函数
+ * 包含从 Front Matter 中提取标题、期号等辅助函数
  */
 
 /**
- * 从Front Matter中提取标题
+ * 从 Front Matter 中提取标题
  * 
  * 优先级：
  * 1. frontMatter.title
- * 2. 从文件名中提取日期生成标题（如：每日日报 - 2026年2月22日）
+ * 2. 从文件名中提取日期生成标题（如：每日日报 - 2026 年 2 月 22 日）
  * 3. 使用文件名作为标题
  * 
- * @param {Object} frontMatter - Front Matter元数据
+ * @param {Object} frontMatter - Front Matter 元数据
  * @param {string} filename - 文件名
  * @returns {string} 标题
  */
@@ -25,13 +25,13 @@ function extractTitleFromFrontMatter(frontMatter, filename) {
     const year = dateMatch[1];
     const month = parseInt(dateMatch[2], 10);
     const day = parseInt(dateMatch[3], 10);
-    return `每日日报 - ${year}年${month}月${day}日`;
+    return `每日日报 - ${year} 年 ${month} 月 ${day} 日`;
   }
   return filename.replace(/\.md$/, '');
 }
 
 /**
- * 从Front Matter中提取期号
+ * 从 Front Matter 中提取期号
  * 
  * 优先级：
  * 1. frontMatter.number
@@ -39,7 +39,7 @@ function extractTitleFromFrontMatter(frontMatter, filename) {
  * 3. 从文件名中提取第一个数字
  * 4. 默认值 '001'
  * 
- * @param {Object} frontMatter - Front Matter元数据
+ * @param {Object} frontMatter - Front Matter 元数据
  * @param {string} filename - 文件名
  * @returns {string} 期号
  */

@@ -1,163 +1,190 @@
 /**
  * 标签注册表
- * 管理所有标签处理器
+ * 自动发现并注册所有标签处理器
  */
 
-const definitions = require('./definitions');
-const InlineHandler = require('./handlers/inlineHandler');
-const MarkerHandler = require('./handlers/markerHandler');
-const BlockHandler = require('./handlers/blockHandler');
+const fs = require('fs');
+const path = require('path');
+const MetaCollector = require('./MetaCollector');
 
 class TagRegistry {
   constructor() {
-    this.handlers = new Map();
+    this.handlers = [];
+    this.styleCache = null;
     this.initialize();
   }
 
+  /**
+   * 自动发现并注册所有标签处理器
+   */
   initialize() {
-    for (const def of definitions) {
-      let HandlerClass;
-      switch (def.type) {
-        case 'inline':
-          HandlerClass = InlineHandler;
-          break;
-        case 'marker':
-          HandlerClass = MarkerHandler;
-          break;
-        case 'block':
-          HandlerClass = BlockHandler;
-          break;
-        default:
-          throw new Error(`Unknown handler type: ${def.type}`);
+    const tagsDir = path.join(__dirname, 'tags');
+
+    if (!fs.existsSync(tagsDir)) {
+      console.warn(`Tags directory not found: ${tagsDir}`);
+      return;
+    }
+
+    const files = fs.readdirSync(tagsDir);
+
+    for (const file of files) {
+      if (file.endsWith('Handler.js')) {
+        try {
+          const HandlerClass = require(path.join(tagsDir, file));
+          const handler = new HandlerClass();
+          this.handlers.push(handler);
+        } catch (err) {
+          console.error(`Failed to load handler ${file}:`, err.message);
+        }
       }
-      this.handlers.set(def.name, new HandlerClass(def, this));
     }
   }
 
-  getHandler(name) {
-    return this.handlers.get(name);
-  }
-
+  /**
+   * 获取所有处理器
+   */
   getAllHandlers() {
-    return Array.from(this.handlers.values());
+    return this.handlers;
   }
 
-  // 解析所有标签
-  parse(content, context = {}) {
-    context = {
-      state: {
-        inHeadline: true,
-        inSection: false,
-        inArticles: false,
-        sectionIndex: -1,
-        articleIndex: 0,
-      },
-      results: {
-        tags: {},
-        markers: {},
-        blocks: {},
-      },
-      ...context,
-    };
+  /**
+   * 获取指定名称的处理器
+   */
+  getHandler(name) {
+    return this.handlers.find((h) => h.name === name.toLowerCase());
+  }
 
-    for (const handler of this.handlers.values()) {
-      const results = handler.parse(content, context);
-      if (results.length > 0) {
-        context.results[handler.name] = results;
+  /**
+   * 提取标签（主入口）
+   */
+  extractTags(content, options = {}) {
+    const collector = options.collector || new MetaCollector();
+    const context = { collector, state: collector.state };
+
+    // 按类型分组处理
+    const inlineHandlers = this.handlers.filter((h) => h.getType() === 'inline');
+    const markerHandlers = this.handlers.filter((h) => h.getType() === 'marker');
+    const blockHandlers = this.handlers.filter((h) => h.getType() === 'block');
+
+    // 逐行处理：先处理 marker 建立状态，然后处理 inline tags
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      
+      // 先处理 marker handlers（建立状态）- 使用单行内容
+      for (const handler of markerHandlers) {
+        handler.parse(line, context);
+      }
+      
+      // 检测 # 标题并通知 collector（在 marker 之后，这样 articles 状态已经设置）
+      const headingMatch = line.match(/^(#{1,2})\s/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        collector.onHeading(level);
+      }
+      
+      // 然后处理 inline handlers（收集元数据）- 使用单行内容
+      for (const handler of inlineHandlers) {
+        handler.parse(line, context);
       }
     }
 
-    return context.results;
-  }
-
-  // 清理内容中的标签
-  clean(content) {
-    for (const handler of this.handlers.values()) {
-      content = handler.clean(content);
-    }
-    return content;
-  }
-
-  // 完整的解析方法：返回 tags 和 cleanContent（兼容旧接口）
-  // 注意：只清理 inline 标签，保留 marker 标签供 markdownParser.js 使用
-  extractTags(content, context = {}) {
-    context = {
-      state: {
-        inHeadline: true,
-        inSection: false,
-        inArticles: false,
-        sectionIndex: -1,
-        articleIndex: 0,
-      },
-      results: {
-        tags: {},
-        markers: {},
-        blocks: {},
-      },
-      ...context,
-    };
-
-    for (const handler of this.handlers.values()) {
-      const results = handler.parse(content, context);
-      if (results.length > 0) {
-        context.results[handler.name] = results;
-      }
+    // 处理 block 标签（不需要逐行）
+    for (const handler of blockHandlers) {
+      handler.parse(content, context);
     }
 
-    // 只清理 inline 标签，保留 marker 标签（section, head, articles）
+    // 清理内容（只清理 inline 和 marker）
     let cleanContent = content;
-    for (const handler of this.handlers.values()) {
-      // 只清理 inline 和 block 类型，保留 marker
-      const def = handler.definition;
-      if (def.type === 'inline' || def.type === 'block') {
-        cleanContent = handler.clean(cleanContent);
-      }
+    for (const handler of [...inlineHandlers, ...markerHandlers]) {
+      cleanContent = handler.clean(cleanContent);
     }
 
-    // 转换为旧架构兼容的格式
-    const tags = this._convertToLegacyFormat(context.results);
+    // 获取元数据
+    const meta = collector.getResult();
+
+    // 构建返回结果
+    const tags = this._buildTagsResult(meta);
 
     return { tags, cleanContent };
   }
 
-  // 转换为旧架构兼容的格式
-  _convertToLegacyFormat(results) {
-    const tags = {};
+  /**
+   * 收集所有标签的样式
+   * @returns {string} 所有样式的组合
+   */
+  collectStyles() {
+    // 使用缓存避免重复计算
+    if (this.styleCache) return this.styleCache;
 
-    // 处理行内标签 (tag, from, fromstr, intro, icon, sum, think)
-    const inlineTags = ['tag', 'from', 'fromstr', 'intro', 'icon', 'sum', 'think'];
-    for (const name of inlineTags) {
-      if (results[name]) {
-        if (name === 'tag') {
-          // tag 可能有多个值
-          tags.tag = results[name].map(r => r.value);
-        } else if (results[name].length > 0) {
-          tags[name] = results[name][0].value;
+    const styles = [];
+    const seen = new Set();
+
+    for (const handler of this.handlers) {
+      if (typeof handler.getStyles === 'function') {
+        const style = handler.getStyles();
+        if (style && style.trim() && !seen.has(handler.name)) {
+          styles.push(style.trim());
+          seen.add(handler.name);
         }
       }
     }
 
-    // 处理标记 (head, section, articles)
-    if (results.head) {
-      tags.head = true;
-    }
-    if (results.section) {
-      tags.section = results.section.map(r => r.lineIndex);
-    }
-    if (results.articles) {
-      tags.articles = true;
+    this.styleCache = styles.join('\n');
+    return this.styleCache;
+  }
+
+  /**
+   * 获取样式 HTML 标签
+   * @returns {string} <style> 标签
+   */
+  getStylesHTML() {
+    const styles = this.collectStyles();
+    if (!styles) return '';
+    return `<style>${styles}</style>`;
+  }
+
+  /**
+   * 清除样式缓存（开发模式使用）
+   */
+  clearStyleCache() {
+    this.styleCache = null;
+  }
+
+  /**
+   * 构建标签结果对象
+   * @private
+   */
+  _buildTagsResult(meta) {
+    const tags = {};
+
+    if (meta.sectionArticleMeta && meta.sectionArticleMeta.length > 0) {
+      tags.sectionArticleMeta = meta.sectionArticleMeta;
     }
 
-    // 处理区块 (data, quote, weather)
-    if (results.data) {
-      tags.data = results.data.map(d => d.data);
+    if (meta.headlineTags) {
+      tags.headlineTags = meta.headlineTags;
     }
-    if (results.quote) {
-      tags.quoteBlocks = results.quote.map(r => r.data.content);
+
+    if (meta.headFrom) {
+      tags.headFrom = meta.headFrom;
     }
-    if (results.weather) {
-      tags.weather = results.weather.map(w => w.data);
+
+    if (meta.dataBlocks) {
+      tags.dataBlocks = meta.dataBlocks;
     }
+
+    if (meta.quoteBlocks) {
+      tags.quoteBlocks = meta.quoteBlocks;
+    }
+
+    // 添加 weather 标签支持
+    if (meta.weather && meta.weather.length > 0) {
+      tags.weather = meta.weather;
+    }
+
+    // 添加 hasHeadMarker 标志，用于 markdownParser.js 判断
+    tags.hasHeadMarker = meta.hasHeadMarker;
 
     return tags;
   }
