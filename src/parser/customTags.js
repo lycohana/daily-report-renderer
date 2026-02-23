@@ -39,6 +39,7 @@ function extractCustomTags(content) {
   let currentArticleMeta = null;
 
   const lines = content.split('\n');
+  let hasHeadMarker = false; // 是否看到了 [head]: 标记
   let inHeadline = true;
   let inSection = false;
   let sectionIndex = -1;
@@ -111,6 +112,12 @@ function extractCustomTags(content) {
       }
     }
 
+    // 检测 [head]: 标记
+    if (line.startsWith('[head]:')) {
+      hasHeadMarker = true;
+      continue;
+    }
+
     if (line.startsWith('[section]:')) {
       if (inSection) {
         if (currentArticleMeta && (currentArticleMeta.from || currentArticleMeta.fromStr || currentArticleMeta.tags.length > 0)) {
@@ -139,10 +146,14 @@ function extractCustomTags(content) {
       continue;
     }
 
-    if (line.startsWith('# ') && inHeadline) {
+    // 只有在看到了 [head]: 标记后，第一个 # 标题才是头版头条的结束
+    if (line.startsWith('# ') && inHeadline && hasHeadMarker) {
       inHeadline = false;
       continue;
     }
+    
+    // 如果没有 [head]: 标记，遇到 # 标题时不设置 inHeadline = false
+    // 这样标签会被当作章节级别的标签处理
 
     if (line.startsWith('[intro:')) {
       const introMatch = line.match(/\[intro:([^\]]+)\]/);

@@ -94,6 +94,7 @@ function parseMarkdown(content) {
   let headlineContent = [];
   let articleContent = [];
   let isFirstHash = true;
+  let hasHeadMarker = false; // 是否看到了 [head]: 标记
   let inSection = false;
   let currentSectionTags = [];
   let currentSectionIcon = null;
@@ -107,7 +108,8 @@ function parseMarkdown(content) {
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     
-    if (line.startsWith('# ') && isFirstHash) {
+    // 只有在看到了 [head]: 标记后，第一个 # 标题才是头版头条
+    if (line.startsWith('# ') && isFirstHash && hasHeadMarker) {
       if (headSection) {
         headSection.content = headlineContent.join('\n').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
       }
@@ -126,13 +128,25 @@ function parseMarkdown(content) {
       continue;
     }
     
+    // 如果没有 [head]: 标记，遇到第一个 # 标题时设置 isFirstHash = false 以允许章节解析
+    if (line.startsWith('# ') && isFirstHash && !hasHeadMarker && inSection) {
+      isFirstHash = false;
+    }
+    
+    // 检测 [head]: 标记 - 标记头版头条区域的开始
+    if (line.startsWith('[head]:')) {
+      hasHeadMarker = true;
+      continue;
+    }
+    
     if (line.startsWith('[section]:')) {
       sectionIndex++;
       inSection = true;
       continue;
     }
     
-    if (line.startsWith('# ') && !isFirstHash && inSection) {
+    // 章节标题: 在 inSection 状态下，或者没有 [head]: 标记时（允许第一个 # 标题作为章节）
+    if (line.startsWith('# ') && (!isFirstHash || !hasHeadMarker) && inSection) {
       if (currentSection && currentArticle) {
         const rawContent = articleContent.join('\n');
         const quoteBlockRegex = /^> (.+)$/gm;
