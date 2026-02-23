@@ -13,7 +13,7 @@
 - 💾 **缓存机制**: 内置内存缓存，提升响应速度
 - 🎨 **精美 UI**: 报纸风格设计，响应式布局
 - 🧪 **完整测试**: Jest 单元测试 + 集成测试
-- ✅ **代码质量**: ESLint + Prettier + Husky
+- ✅ **代码质量**: ESLint + Prettier + Commitlint
 
 ## 快速开始
 
@@ -65,7 +65,6 @@ daily-report-renderer/
 │   ├── markdownParser.test.js
 │   ├── cache.test.js
 │   └── fileWatcher.test.js
-├── .husky/                   # Git hooks
 ├── package.json
 └── .eslintrc.json
 ```
@@ -188,14 +187,10 @@ npm run lint:fix
 
 # 格式检查
 npm run format:check
+
+# 验证提交信息（手动运行）
+npm run commitlint
 ```
-
-### Git Hooks
-
-使用 Husky 集成 Git hooks：
-
-- `pre-commit`: 运行 ESLint + Prettier
-- `commit-msg`: 验证提交信息格式
 
 ### 配置
 
