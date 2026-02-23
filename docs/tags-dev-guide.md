@@ -5,11 +5,11 @@
 ## 目录
 
 - [快速开始](#快速开始)
+- [架构概述](#架构概述)
 - [标签类型](#标签类型)
-- [新增行内标签](#新增行内标签)
-- [新增标记标签](#新增标记标签)
-- [新增区块标签](#新增区块标签)
+- [新增标签处理器](#新增标签处理器)
 - [标签作用域](#标签作用域)
+- [状态机](#状态机)
 - [视图层使用](#视图层使用)
 
 ---
@@ -18,41 +18,106 @@
 
 新增一个自定义标签只需两步：
 
-1. 在 [`src/parser/tags/definitions.js`](src/parser/tags/definitions.js) 中添加标签定义
+1. 在 `src/parser/tags/tags/` 目录下创建新的处理器文件
 2. 在视图模板中使用提取的数据
 
 示例：新增 `[author:张三]: #` 标签
 
 ```javascript
-// src/parser/tags/definitions.js
-{
-  name: 'author',
-  type: 'inline',
-  syntax: /^\[author:([^\]]+)\]:\s*#\s*$/,
-  scope: ['article'],
-  maxOccurrences: 1,
-  extract: (match) => ({ value: match[1] }),
-  clean: (match) => match[0],
-},
+// src/parser/tags/tags/authorHandler.js
+const BaseHandler = require('../BaseHandler');
+
+class AuthorHandler extends BaseHandler {
+  constructor() {
+    super();
+    this.syntax = /^\[author:([^\]]+)\]:\s*#\s*$/;
+  }
+
+  getType() {
+    return 'inline';
+  }
+
+  parse(content, context) {
+    const results = [];
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const match = line.match(this.syntax);
+
+      if (match) {
+        results.push({
+          name: this.name,
+          value: match[1],
+          lineIndex: i,
+        });
+
+        if (context?.collector) {
+          context.collector.collect('author', match[1], context.state);
+        }
+      }
+    }
+
+    return results;
+  }
+
+  clean(content) {
+    return content.replace(this.syntax, '');
+  }
+}
+
+module.exports = AuthorHandler;
 ```
 
 然后在视图中使用：
 
 ```ejs
 <% if (customTags.author && customTags.author.length > 0) { %>
-<div class="article-author">作者：<%= customTags.author[0].value %></div>
+<div class="article-author">作者：<%= customTags.author[0] %></div>
 <% } %>
 ```
 
 ---
 
-## 标签类型
+## 架构概述
 
-系统支持三种标签类型：
+### 文件结构
+
+```
+src/parser/tags/
+├── BaseHandler.js          # 基础处理器类
+├── MetaCollector.js        # 元数据收集器（状态机）
+├── index.js               # 标签注册表（自动发现）
+└── tags/                  # 标签处理器目录
+    ├── tagHandler.js      # [tag:] 标签
+    ├── fromHandler.js     # [from:] 标签
+    ├── fromstrHandler.js  # [fromstr:] 标签
+    ├── iconHandler.js     # [icon:] 标签
+    ├── introHandler.js    # [intro:] 标签
+    ├── sumHandler.js      # [sum:] 标签
+    ├── thinkHandler.js    # [think:] 标签
+    ├── headHandler.js     # [head]: 标记
+    ├── sectionHandler.js  # [section]: 标记
+    ├── articlesHandler.js # [articles]: 标记
+    ├── dataHandler.js     # [data:] 数据块
+    ├── quoteHandler.js    # > 引用块
+    └── weatherHandler.js  # <weather> 天气块
+```
+
+### 核心组件
+
+1. **BaseHandler** - 所有处理器的基类
+2. **MetaCollector** - 状态机和元数据收集器
+3. **TagRegistry** - 自动发现和注册处理器
+4. **Handler Classes** - 每个标签一个处理器类
+
+---
+
+## 标签类型
 
 ### 1. 行内标签 (inline)
 
-**语法**: `[标签名:参数]: #`
+**语法**: `[标签名：参数]: #`
 
 **特点**: 单行定义，可重复使用
 
@@ -63,7 +128,7 @@
 [icon:🤖]: #
 ```
 
-**处理器**: [`inlineHandler.js`](src/parser/tags/handlers/inlineHandler.js)
+**处理器示例**: `tagHandler.js`, `fromHandler.js`
 
 ### 2. 标记标签 (marker)
 
@@ -78,11 +143,11 @@
 [articles]: #
 ```
 
-**处理器**: [`markerHandler.js`](src/parser/tags/handlers/markerHandler.js)
+**处理器示例**: `headHandler.js`, `sectionHandler.js`, `articlesHandler.js`
 
 ### 3. 区块标签 (block)
 
-**语法**: `<标签名>内容</标签名>`
+**语法**: `<标签名>内容</标签名>` 或 `> 引用块`
 
 **特点**: 可跨多行，包含复杂内容
 
@@ -92,473 +157,220 @@
 <num>98.7%</num><str>完成率</str>
 </data>
 
-<tip>这是提示内容</tip>
+> **引用：** 引用内容
 ```
 
-**处理器**: [`blockHandler.js`](src/parser/tags/handlers/blockHandler.js)
+**处理器示例**: `dataHandler.js`, `quoteHandler.js`, `weatherHandler.js`
 
 ---
 
-## 新增行内标签
+## 新增标签处理器
 
-行内标签用于定义带参数的简单元数据。
+### 步骤 1：创建处理器文件
 
-### 步骤 1: 在 definitions.js 中添加定义
-
-打开 [`src/parser/tags/definitions.js`](src/parser/tags/definitions.js)，在任意位置添加：
+在 `src/parser/tags/tags/` 目录下创建新文件，例如 `authorHandler.js`：
 
 ```javascript
-{
-  name: 'author',           // 标签名称（唯一标识）
-  type: 'inline',           // 标签类型
-  syntax: /^\[author:([^\]]+)\]:\s*#\s*$/,  // 正则匹配语法
-  scope: ['article'],       // 有效作用域
-  maxOccurrences: 1,        // 最大出现次数
-  extract: (match, context) => ({ value: match[1] }),  // 提取逻辑
-  clean: (match) => match[0],  // 清理逻辑（从内容中移除）
-},
-```
+const BaseHandler = require('../BaseHandler');
 
-### 字段说明
+class AuthorHandler extends BaseHandler {
+  constructor() {
+    super();
+    this.syntax = /^\[author:([^\]]+)\]:\s*#\s*$/;
+  }
 
-| 字段 | 类型 | 必填 | 说明 |
-|------|------|------|------|
-| `name` | string | ✅ | 标签唯一标识 |
-| `type` | string | ✅ | `inline` / `marker` / `block` |
-| `syntax` | RegExp | ✅ | 匹配标签的正则表达式 |
-| `scope` | string[] | ✅ | 有效作用域 |
-| `maxOccurrences` | number | ❌ | 最大出现次数，默认 Infinity |
-| `extract` | function | ❌ | 提取数据的函数（block/inline 需要） |
-| `onMatch` | function | ❌ | 匹配时触发的回调（marker 需要） |
-| `clean` | function | ❌ | 清理函数，返回空字符串则从内容中移除 |
+  getType() {
+    return 'inline';
+  }
 
-### 步骤 2: 在视图中使用
+  parse(content, context) {
+    const results = [];
+    const lines = content.split('\n');
 
-```ejs
-<!-- 简单值 -->
-<%= customTags.author[0].value %>
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const match = line.match(this.syntax);
 
-<!-- 循环遍历多个值 -->
-<% customTags.tag.forEach(t => { %>
-  <span class="tag"><%= t.value %></span>
-<% }); %>
-```
-
-### 完整示例：新增来源标签
-
-```javascript
-// 定义
-{
-  name: 'source',
-  type: 'inline',
-  syntax: /^\[source:([^\]]+)\]:\s*#\s*$/,
-  scope: ['article'],
-  maxOccurrences: 1,
-  extract: (match) => ({ 
-    name: match[1],
-    url: null  // 可扩展
-  }),
-  clean: (match) => match[0],
-},
-```
-
-```ejs
-<!-- 使用 -->
-<% if (customTags.source && customTags.source.length > 0) { %>
-<div class="article-source">来源：<%= customTags.source[0].value %></div>
-<% } %>
-```
-
----
-
-## 新增标记标签
-
-标记标签用于触发状态变化，不提取数据。
-
-### 步骤 1: 添加定义
-
-```javascript
-{
-  name: 'featured',        // 标签名称
-  type: 'marker',          // 标记类型
-  syntax: /^\[featured\]:\s*#\s*$/,
-  scope: ['section'],       // 有效作用域
-  maxOccurrences: 1,
-  onMatch: (context) => {
-    // 触发状态变化
-    context.state.isFeatured = true;
-  },
-  clean: (match) => match[0],
-},
-```
-
-### 步骤 2: 在视图中使用
-
-标记标签会修改 `context.state`，可在解析后访问：
-
-```javascript
-// 在 routes.js 中
-const parsed = markdownParser.parseMarkdown(content);
-// parsed.context.state.isFeatured 可用
-```
-
-```ejs
-<!-- 使用状态 -->
-<% if (typeof context !== 'undefined' && context.state && context.state.isFeatured) { %>
-<div class="featured-badge">精选</div>
-<% } %>
-```
-
----
-
-## 新增区块标签
-
-区块标签用于处理包含复杂内容的标签，如数据块、提示框等。
-
-### 步骤 1: 添加定义
-
-```javascript
-{
-  name: 'tip',             // 标签名称
-  type: 'block',           // 区块类型
-  syntax: /<tip>([\s\S]*?)<\/tip>/,
-  scope: ['article', 'section'],
-  maxOccurrences: Infinity,
-  extract: (match) => ({
-    content: match[1].trim()
-  }),
-  // 设为 null 表示保留在内容中，由渲染器处理
-  clean: null,
-},
-```
-
-### 步骤 2: 在视图中使用
-
-```ejs
-<% if (customTags.tip && customTags.tip.length > 0) { %>
-<div class="tip-box">
-  <% customTags.tip.forEach(tip => { %>
-  <div class="tip-content"><%- md.render(tip.data.content) %></div>
-  <% }); %>
-</div>
-<% } %>
-```
-
-### 完整示例：新增统计卡片区块
-
-```javascript
-// 定义
-{
-  name: 'stat',
-  type: 'block',
-  syntax: /<stat>([\s\S]*?)<\/stat>/,
-  scope: ['article'],
-  maxOccurrences: Infinity,
-  extract: (match) => {
-    // 解析 <num>value</num><label>text</label> 格式
-    const items = [];
-    const regex = /<num>([^<]+)<\/num>\s*<label>([^<]+)<\/label>/g;
-    let m;
-    while ((m = regex.exec(match[1])) !== null) {
-      items.push({ value: m[1], label: m[2] });
-    }
-    return items.length > 0 ? items : null;
-  },
-  clean: null,
-},
-```
-
-```markdown
-<!-- 使用 -->
-<stat>
-<num>98.7%</num><label>完成率</label>
-<num>100万</num><label>Token</label>
-</stat>
-```
-
-```ejs
-<!-- 渲染 -->
-<div class="stat-grid">
-  <% customTags.stat.forEach(stat => { %>
-    <% stat.data.forEach(item => { %>
-    <div class="stat-card">
-      <div class="stat-value"><%= item.value %></div>
-      <div class="stat-label"><%= item.label %></div>
-    </div>
-    <% }); %>
-  <% }); %>
-</div>
-```
-
-### 完整示例：新增天气卡片区块
-
-```javascript
-// 定义
-{
-  name: 'weather',
-  type: 'block',
-  syntax: /<weather>([\s\S]*?)<\/weather>/g,
-  scope: ['headline', 'section', 'article'],
-  maxOccurrences: Infinity,
-  extract: (match) => {
-    const dayRegex = /<day>([^<]+)<\/day>/g;
-    const items = [];
-    let m;
-    while ((m = dayRegex.exec(match[1])) !== null) {
-      const parts = m[1].split('|');
-      if (parts.length >= 5) {
-        items.push({
-          day: parts[0].trim(),
-          city: parts[1].trim(),
-          icon: parts[2].trim(),
-          condition: parts[3].trim(),
-          temp: parts[4].trim()
+      if (match) {
+        results.push({
+          name: this.name,
+          value: match[1],
+          lineIndex: i,
         });
+
+        // 如果需要收集到元数据
+        if (context?.collector) {
+          context.collector.collect('author', match[1], context.state);
+        }
       }
     }
-    return items.length > 0 ? items : null;
-  },
-  clean: null,
-},
+
+    return results;
+  }
+
+  clean(content) {
+    return content.replace(this.syntax, '');
+  }
+
+  getStyles() {
+    return `
+.author { color: #1565c0; font-weight: 600; }
+    `.trim();
+  }
+}
+
+module.exports = AuthorHandler;
 ```
 
-```markdown
-<!-- 使用 -->
-<weather>
-<day>周一|东莞|☀️|晴|26°C/17°C</day>
-<day>周二|东莞|⛅|多云|25°C/16°C</day>
-<day>周三|深圳|🌧️|雨|24°C/15°C</day>
-</weather>
-```
+### 步骤 2：自动注册
 
-```ejs
-<!-- CSS 样式 -->
-<style>
-.weather-grid{display:flex;gap:12px;flex-wrap:wrap;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0}
-.weather-item{flex:1;min-width:100px;max-width:150px;background:#fff;border-radius:12px;padding:12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1)}
-.weather-icon{font-size:2rem;margin-bottom:4px}
-.weather-city{font-weight:600;color:#1565c0;font-size:.9rem}
-.weather-condition{color:#757575;font-size:.85rem}
-.weather-temp{color:#424242;font-size:.85rem;margin-top:4px}
-.weather-day{font-size:.75rem;color:#9e9e9e;margin-top:8px;padding-top:8px;border-top:1px dashed #e0e0e0}
-</style>
+处理器文件创建后会自动被 `index.js` 发现并注册，无需手动配置。
 
-<!-- 渲染 -->
-<% if (customTags.weather) { %>
-<div class="weather-grid">
-  <% customTags.weather.forEach(w => { %>
-    <% w.data.forEach(day => { %>
-    <div class="weather-item">
-      <div class="weather-icon"><%= day.icon %></div>
-      <div class="weather-city"><%= day.city %></div>
-      <div class="weather-condition"><%= day.condition %></div>
-      <div class="weather-temp"><%= day.temp %></div>
-      <div class="weather-day"><%= day.day %></div>
-    </div>
-    <% }); %>
-  <% }); %>
-</div>
-<% } %>
+### 步骤 3：在 MetaCollector 中添加收集逻辑（可选）
+
+如果标签需要收集到元数据中，在 `MetaCollector.js` 的 `collect()` 方法中添加：
+
+```javascript
+case 'author':
+  if (inArticles) {
+    this.currentArticleMeta.author = value;
+  } else if (inSection) {
+    this.currentMeta.author = value;
+  }
+  break;
 ```
 
 ---
 
 ## 标签作用域
 
-标签可以限定在特定区域生效：
+标签可以在不同上下文中使用，系统会自动识别：
 
-| 作用域 | 说明 | 示例 |
-|--------|------|------|
-| `headline` | 头版头条区域 | `[tag:AI]` |
-| `section` | 章节区域 | `[intro:简介]`, `[icon:🤖]` |
-| `article` | 文章区域 | `[from:URL]`, `[tag:标签]` |
-| `global` | 全局任意位置 | `[think:思考]` |
+- **headline** - 头版头条区域
+- **section** - 章节区域
+- **article** - 文章区域
 
-### 多作用域
+状态由 `MetaCollector` 跟踪，通过 `context.state` 访问。
 
-一个标签可以支持多个作用域：
+---
 
-```javascript
-{
-  name: 'label',
-  type: 'inline',
-  syntax: /^\[label:([^\]]+)\]:\s*#\s*$/,
-  scope: ['headline', 'section', 'article'],
-  // ...
-}
-```
+## 状态机
 
-### 作用域判断
-
-在 `extract` 函数中可以通过 `context.state` 判断当前处理区域：
+`MetaCollector` 管理文档解析状态：
 
 ```javascript
-extract: (match, context) => {
-  if (context.state.inHeadline) {
-    // 处理头版头条区域
-  } else if (context.state.inSection && context.state.inArticles) {
-    // 处理文章区域
-  }
-  return { value: match[1] };
-}
+this.state = {
+  inHeadline: true,      // 是否在头版区域
+  inSection: false,      // 是否在章节区域
+  inArticles: false,     // 是否在文章区域
+  sectionIndex: -1,      // 当前章节索引
+  articleIndex: 0,       // 当前文章索引
+  hasHeadMarker: false,  // 是否有 [head]: 标记
+};
 ```
+
+状态变化由标记标签触发：
+- `[head]:` → `inHeadline = true`
+- `[section]:` → `inSection = true`, `sectionIndex++`
+- `[articles]:` → `inArticles = true`
 
 ---
 
 ## 视图层使用
 
-### 访问标签数据
+### 访问 customTags
 
 ```ejs
-<!-- 检查是否存在 -->
-<% if (customTags.标签名 && customTags.标签名.length > 0) { %>
-  <!-- 访问第一个值 -->
-  <%= customTags.标签名[0].value %>
-  
-  <!-- 遍历所有值 -->
-  <% customTags.标签名.forEach(item => { %>
-    <span><%= item.value %></span>
-  <% }); %>
-<% } %>
-```
-
-### 数据结构
-
-不同类型标签返回的数据结构：
-
-```javascript
-// 行内标签 - extract 返回对象
-customTags.tag = [
-  { name: 'tag', value: 'AI', match: '[tag:AI]: #', index: 0 },
-  { name: 'tag', value: 'OpenAI', match: '[tag:OpenAI]: #', index: 20 }
-];
-
-// 标记标签 - 通过 onMatch 修改 context.state
-// 在 context.state 中访问
-
-// 区块标签 - extract 返回数组
-customTags.data = [
-  { 
-    name: 'data', 
-    data: [
-      { value: '98.7%', label: '完成率' },
-      { value: '100万', label: 'Token' }
-    ],
-    match: '<data>...</data>',
-    index: 100
-  }
-];
-```
-
-### 常用视图模式
-
-```ejs
-<!-- 标签列表 -->
-<% if (customTags.tag) { %>
+<% if (customTags.headlineTags) { %>
 <div class="tags">
-  <% customTags.tag.forEach(t => { %>
-  <span class="tag"><%= t.value %></span>
+  <% customTags.headlineTags.forEach(tag => { %>
+  <span class="tag"><%= tag %></span>
   <% }); %>
 </div>
 <% } %>
+```
 
-<!-- 来源链接 -->
-<% if (customTags.from && customTags.from.length > 0) { %>
-<a href="<%= customTags.from[0].value %>" target="_blank">来源链接</a>
-<% } %>
+### 访问 section/article 元数据
 
-<!-- 带名称的来源 -->
-<% if (customTags.fromstr) { %>
-<span>来源：<%= customTags.fromstr[0].value %></span>
-<% } %>
-
-<!-- 数据块 -->
-<% if (customTags.data && customTags.data.length > 0) { %>
-<div class="stats">
-  <% customTags.data[0].data.forEach(item => { %>
-  <div class="stat">
-    <span class="value"><%= item.value %></span>
-    <span class="label"><%= item.label %></span>
+```ejs
+<% sections.forEach(section => { %>
+<div class="section">
+  <h3><%= section.title %></h3>
+  <p><%= section.intro %></p>
+  
+  <% section.articles.forEach(article => { %>
+  <div class="article">
+    <h4><%= article.title %></h4>
+    <% if (article.from) { %>
+    <a href="<%= article.from %>">来源</a>
+    <% } %>
   </div>
   <% }); %>
 </div>
-<% } %>
+<% }); %>
 ```
 
 ---
 
-## 进阶用法
+## 测试
 
-### 条件提取
+为新增的标签创建测试文件 `tests/tags/authorHandler.test.js`：
 
 ```javascript
-extract: (match, context) => {
-  // 根据上下文条件返回不同结构
-  if (context.state.inArticle) {
-    return { 
-      value: match[1],
-      articleId: context.state.currentArticleId 
-    };
-  }
-  return { value: match[1] };
+const AuthorHandler = require('../../src/parser/tags/tags/authorHandler');
+
+describe('AuthorHandler', () => {
+  let handler;
+
+  beforeEach(() => {
+    handler = new AuthorHandler();
+  });
+
+  test('should have correct name', () => {
+    expect(handler.name).toBe('author');
+  });
+
+  test('should return inline type', () => {
+    expect(handler.getType()).toBe('inline');
+  });
+
+  test('should parse author syntax', () => {
+    const content = '[author:张三]: #';
+    const results = handler.parse(content, {});
+    expect(results).toHaveLength(1);
+    expect(results[0].value).toBe('张三');
+  });
+
+  test('should clean author syntax', () => {
+    const content = '[author:张三]: #\n其他内容';
+    const cleaned = handler.clean(content);
+    expect(cleaned).toBe('\n其他内容');
+  });
+});
+```
+
+---
+
+## 样式
+
+处理器可以通过 `getStyles()` 方法返回 CSS 样式：
+
+```javascript
+getStyles() {
+  return `
+.author { color: #1565c0; font-weight: 600; }
+  `.trim();
 }
 ```
 
-### 跨行匹配
-
-区块标签默认支持跨行：
-
-```javascript
-syntax: /<tip>[\s\S]*?<\/tip>/,
-// 匹配：
-// <tip>
-//   多行内容
-// </tip>
-```
-
-### 正则捕获组
-
-```javascript
-// 多个捕获组
-syntax: /^\[link:([^\]]+)\]:\s*#\s*\[url:([^\]]+)\]:\s*#\s*$/,
-extract: (match) => ({
-  text: match[1],
-  url: match[2]
-}),
-```
+样式会自动被收集并注入到页面的 `<style>` 标签中。
 
 ---
 
-## 调试技巧
+## 完整示例
 
-### 查看所有提取的标签
-
-在路由中添加调试输出：
-
-```javascript
-// routes.js
-const parsed = markdownParser.parseMarkdown(content);
-console.log('Custom tags:', JSON.stringify(parsed.customTags, null, 2));
-```
-
-### 测试正则表达式
-
-```javascript
-// 在 Node REPL 中测试
-const regex = /^\[author:([^\]]+)\]:\s*#\s*$/;
-const test = '[author:张三]: #';
-console.log(regex.test(test));  // true
-console.log(regex.exec(test));  // 捕获组结果
-```
-
----
-
-## 相关文件
-
-| 文件 | 说明 |
-|------|------|
-| [`src/parser/tags/index.js`](src/parser/tags/index.js) | 标签注册表 |
-| [`src/parser/tags/definitions.js`](src/parser/tags/definitions.js) | 标签定义配置 |
-| [`src/parser/tags/handlers/inlineHandler.js`](src/parser/tags/handlers/inlineHandler.js) | 行内标签处理器 |
-| [`src/parser/tags/handlers/markerHandler.js`](src/parser/tags/handlers/markerHandler.js) | 标记标签处理器 |
-| [`src/parser/tags/handlers/blockHandler.js`](src/parser/tags/handlers/blockHandler.js) | 区块标签处理器 |
+查看现有处理器作为参考：
+- [`tagHandler.js`](src/parser/tags/tags/tagHandler.js) - 简单的行内标签
+- [`fromHandler.js`](src/parser/tags/tags/fromHandler.js) - 带 URL 的标签
+- [`dataHandler.js`](src/parser/tags/tags/dataHandler.js) - 复杂的区块标签
+- [`quoteHandler.js`](src/parser/tags/tags/quoteHandler.js) - 引用块处理
