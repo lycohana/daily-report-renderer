@@ -54,8 +54,17 @@ daily-report-renderer/
 │   └── parser/               # 解析器子模块
 │       ├── config.js         # markdown-it 配置
 │       ├── frontMatter.js    # Front Matter 解析
-│       ├── customTags.js     # 自定义标签提取
-│       └── utils.js          # 工具函数
+│       ├── customTags.js     # 自定义标签提取（facade）
+│       ├── utils.js          # 工具函数
+│       └── tags/             # 标签处理器模块
+│           ├── index.js              # 标签注册表
+│           ├── BaseHandler.js        # 基础处理器类
+│           ├── MetaCollector.js      # 元数据收集器
+│           └── tags/                 # 标签处理器
+│               ├── tagHandler.js     # [tag:] 标签
+│               ├── fromHandler.js    # [from:] 标签
+│               ├── sectionHandler.js # [section]: 标记
+│               └── ...               # 其他处理器
 ├── views/                     # EJS 模板
 │   ├── index.ejs             # 日报详情页
 │   ├── list.ejs              # 日报列表页
@@ -64,7 +73,13 @@ daily-report-renderer/
 │   ├── routes.test.js
 │   ├── markdownParser.test.js
 │   ├── cache.test.js
-│   └── fileWatcher.test.js
+│   ├── fileWatcher.test.js
+│   └── tags/                 # 标签处理器测试
+│       ├── tagHandler.test.js
+│       ├── fromHandler.test.js
+│       └── ...
+├── docs/                     # 文档
+│   └── tags-dev-guide.md     # 自定义标签开发指南
 ├── package.json
 └── .eslintrc.json
 ```
@@ -171,7 +186,22 @@ src/
 ├── markdownParser.js     ✓ 解析器测试
 ├── cache.js              ✓ 缓存测试
 └── fileWatcher.js        ✓ 文件监控测试
+
+tests/tags/               ✓ 标签处理器测试
+├── tagHandler.test.js
+├── fromHandler.test.js
+├── sectionHandler.test.js
+├── dataHandler.test.js
+├── weatherHandler.test.js
+└── ...
 ```
+
+### 测试统计
+
+- **总测试数**: 189
+- **通过率**: 100%
+- **测试套件**: 21
+
 
 ## 代码质量
 

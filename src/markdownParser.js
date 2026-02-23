@@ -94,14 +94,17 @@ function parseMarkdown(content) {
   let headlineContent = [];
   let articleContent = [];
   let isFirstHash = true;
-  let hasHeadMarker = false; // 是否看到了 [head]: 标记
+  // 注意：cleanContent 中 [head]: 已被清理，需要从 customTags 中判断
+  const hasHeadMarker = customTags.hasHeadMarker || !!customTags.headlineTags || !!customTags.headFrom;
   let inSection = false;
   let currentSectionTags = [];
   let currentSectionIcon = null;
   let currentSectionIntro = null;
   let sectionIndex = -1;
   let articleIndex = 0;
-  let afterSectionHeader = false;
+  // 使用 customTags.sectionArticleMeta 来跟踪 section 元数据
+  const sectionMetas = customTags.sectionArticleMeta || [];
+  let currentSectionMetaIndex = 0;
   
   const lines = cleanContent.split('\n');
   
@@ -110,10 +113,6 @@ function parseMarkdown(content) {
     
     // 只有在看到了 [head]: 标记后，第一个 # 标题才是头版头条
     if (line.startsWith('# ') && isFirstHash && hasHeadMarker) {
-      if (headSection) {
-        headSection.content = headlineContent.join('\n').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
-      }
-      
       headlineContent = [];
       headSection = {
         type: 'headline',
@@ -128,20 +127,114 @@ function parseMarkdown(content) {
       continue;
     }
     
-    // 如果没有 [head]: 标记，遇到第一个 # 标题时设置 isFirstHash = false 以允许章节解析
-    if (line.startsWith('# ') && isFirstHash && !hasHeadMarker && inSection) {
-      isFirstHash = false;
-    }
-    
-    // 检测 [head]: 标记 - 标记头版头条区域的开始
-    if (line.startsWith('[head]:')) {
-      hasHeadMarker = true;
+    // 检测 # 标题作为 section 开始（[section]: 标记已被清理）
+    // 当 inHeadline 结束后，下一个 # 标题就是 section 标题
+    if (line.startsWith('# ') && !isFirstHash && hasHeadMarker && !inSection) {
+      // 这是第一个 section 标题
+      inSection = true;
+      sectionIndex++;
+      
+      // 保存 headSection 内容
+      if (headSection) {
+        headSection.content = headlineContent.join('\n').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+      }
+      
+      // 从 customTags 中获取 section 元数据
+      const sectionMeta = sectionMetas[currentSectionMetaIndex];
+      if (sectionMeta) {
+        currentSectionIcon = sectionMeta.icon;
+        currentSectionIntro = sectionMeta.intro;
+        currentSectionTags = [...(sectionMeta.tags || [])];
+      }
+      
+      currentSection = {
+        type: 'section',
+        title: line.substring(2).trim(),
+        articles: [],
+        intro: currentSectionIntro,
+        icon: currentSectionIcon,
+        tags: currentSectionTags,
+        summary: sectionMeta?.sum || null,
+        think: sectionMeta?.thinks?.[0] || null,
+        dataBlocks: null
+      };
+      
+      currentSectionMetaIndex++;
+      // afterSectionHeader = true; // Removed: unused variable
       continue;
     }
     
-    if (line.startsWith('[section]:')) {
+    // 检测后续的 # 标题作为新 section 开始（当还有未使用的 section 元数据时）
+    if (line.startsWith('# ') && inSection && currentSectionMetaIndex < sectionMetas.length) {
+      // 保存当前文章
+      if (currentSection && currentArticle) {
+        const rawContent = articleContent.join('\n');
+        const quoteBlockRegex = /^> (.+)$/gm;
+        const articleQuoteBlocks = [];
+        let lastMatchEnd = -1;
+        let currentQuote = null;
+        let match;
+        
+        while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
+          if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
+            if (currentQuote) {
+              articleQuoteBlocks.push(currentQuote.trim());
+              currentQuote = null;
+            }
+          }
+          if (!currentQuote) {
+            currentQuote = match[1];
+          } else {
+            currentQuote += '\n' + match[1];
+          }
+          lastMatchEnd = match.index + match[0].length;
+        }
+        if (currentQuote) {
+          articleQuoteBlocks.push(currentQuote.trim());
+        }
+        
+        currentArticle.quoteBlocks = articleQuoteBlocks;
+        currentArticle.content = rawContent.replace(quoteBlockRegex, '').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+        currentSection.articles.push(currentArticle);
+        currentArticle = null;
+      }
+      
+      // 保存当前 section
+      if (currentSection) {
+        sections.push(currentSection);
+      }
+      
+      // 新 section 开始
       sectionIndex++;
-      inSection = true;
+      
+      // 从 customTags 中获取 section 元数据
+      const sectionMeta = sectionMetas[currentSectionMetaIndex];
+      if (sectionMeta) {
+        currentSectionIcon = sectionMeta.icon;
+        currentSectionIntro = sectionMeta.intro;
+        currentSectionTags = [...(sectionMeta.tags || [])];
+      } else {
+        currentSectionIcon = null;
+        currentSectionIntro = null;
+        currentSectionTags = [];
+      }
+      
+      currentSection = {
+        type: 'section',
+        title: line.substring(2).trim(),
+        articles: [],
+        intro: currentSectionIntro,
+        icon: currentSectionIcon,
+        tags: currentSectionTags,
+        summary: sectionMeta?.sum || null,
+        think: sectionMeta?.thinks?.[0] || null,
+        dataBlocks: null
+      };
+      
+      currentSectionMetaIndex++;
+      // afterSectionHeader = true; // Removed: unused variable
+      articleContent = [];
+      articleIndex = 0;
       continue;
     }
     
@@ -190,8 +283,9 @@ function parseMarkdown(content) {
       articleContent = [];
       articleIndex = 0;
       
-      const sectionMetaIndex = sectionIndex * 2;
-      const sectionMeta = customTags.sectionArticleMeta && customTags.sectionArticleMeta[sectionMetaIndex];
+      // 新架构：sectionArticleMeta 是简单数组，每个 section 对应一个对象
+      // 注意：sectionIndex 从 0 开始，所以直接使用 sectionIndex 作为索引
+      const sectionMeta = customTags.sectionArticleMeta && customTags.sectionArticleMeta[sectionIndex];
       if (sectionMeta) {
         if (sectionMeta.icon) {
           currentSectionIcon = sectionMeta.icon;
@@ -211,8 +305,8 @@ function parseMarkdown(content) {
         intro: currentSectionIntro,
         icon: currentSectionIcon,
         tags: currentSectionTags,
-        summary: null,
-        think: null,
+        summary: sectionMeta?.sum || null,
+        think: sectionMeta?.thinks?.[0] || null,
         dataBlocks: null
       };
       
@@ -226,33 +320,7 @@ function parseMarkdown(content) {
         }
       }
       
-      afterSectionHeader = true;
-      continue;
-    }
-    
-    if (line.trim().startsWith('[icon:') && currentSection && afterSectionHeader) {
-      const iconMatch = line.match(/\[icon:([^\]]+)\]/);
-      if (iconMatch) {
-        currentSectionIcon = iconMatch[1];
-        currentSection.icon = currentSectionIcon;
-      }
-      continue;
-    }
-    
-    if (line.trim().startsWith('[intro:') && currentSection && afterSectionHeader) {
-      const introMatch = line.match(/\[intro:([^\]]+)\]/);
-      if (introMatch) {
-        currentSectionIntro = introMatch[1];
-        currentSection.intro = currentSectionIntro;
-      }
-      continue;
-    }
-    
-    if (line.trim().startsWith('[tag:') && currentSection && afterSectionHeader) {
-      const tagMatch = line.match(/\[tag:([^\]]+)\]/);
-      if (tagMatch) {
-        currentSectionTags.push(tagMatch[1]);
-      }
+      // afterSectionHeader = true; // Removed: unused variable
       continue;
     }
     
@@ -291,49 +359,14 @@ function parseMarkdown(content) {
       
       articleContent = [];
       const articleTitle = line.substring(3).trim();
-      const meta = {
-        title: articleTitle,
-        from: null,
-        fromStr: null,
-        tags: []
-      };
       
-      for (let j = i - 1; j >= 0 && j >= i - 20; j--) {
-        const prevLine = lines[j];
-        const fromMatch = prevLine.match(/\[from:([^\]]+)\]/);
-        if (fromMatch && !meta.from) {
-          meta.from = fromMatch[1];
-        }
-        const fromStrMatch = prevLine.match(/\[fromstr:([^\]]+)\]/);
-        if (fromStrMatch && !meta.fromStr) {
-          meta.fromStr = fromStrMatch[1];
-        }
-        const tagMatch = prevLine.match(/\[tag:([^\]]+)\]/);
-        if (tagMatch) {
-          meta.tags.unshift(tagMatch[1]);
-        }
-      }
-      
-      if (currentSection.pendingArticleMeta && !meta.from) {
-        meta.from = currentSection.pendingArticleMeta.from;
-        meta.fromStr = currentSection.pendingArticleMeta.fromStr;
-        meta.tags = [...(currentSection.pendingArticleMeta.tags || []), ...meta.tags];
-      }
-      
-      const articleMetaIndex = sectionIndex * 2 + 1;
-      const sectionMeta = customTags.sectionArticleMeta && customTags.sectionArticleMeta[articleMetaIndex];
-      if (sectionMeta && sectionMeta.articleMeta) {
-        const articleMeta = sectionMeta.articleMeta[articleIndex];
-        if (articleMeta) {
-          if (!meta.from && articleMeta.from) {
-            meta.from = articleMeta.from;
-          }
-          if (!meta.fromStr && articleMeta.fromStr) {
-            meta.fromStr = articleMeta.fromStr;
-          }
-          if (articleMeta.tags && articleMeta.tags.length > 0) {
-            meta.tags = [...articleMeta.tags, ...meta.tags];
-          }
+      // 新架构：从 customTags.sectionArticleMeta 中获取文章元数据
+      // 使用 articleIndex 来索引当前文章
+      let articleMeta = null;
+      if (customTags.sectionArticleMeta && customTags.sectionArticleMeta[sectionIndex]) {
+        const sectionMeta = customTags.sectionArticleMeta[sectionIndex];
+        if (sectionMeta.articleMeta && sectionMeta.articleMeta[articleIndex]) {
+          articleMeta = sectionMeta.articleMeta[articleIndex];
         }
       }
       
@@ -342,11 +375,11 @@ function parseMarkdown(content) {
         title: articleTitle,
         content: '',
         quoteBlocks: [],
-        from: meta.from,
-        fromStr: meta.fromStr,
-        tags: meta.tags,
-        summary: null,
-        think: null,
+        from: articleMeta?.from || null,
+        fromStr: articleMeta?.fromStr || null,
+        tags: articleMeta?.tags || [],
+        summary: articleMeta?.sum || null,
+        think: articleMeta?.thinks?.[0] || null,
         dataBlocks: null
       };
       
@@ -431,7 +464,9 @@ function parseMarkdown(content) {
       continue;
     }
     
-    if (headSection && isFirstHash === false && !currentSection) {
+    // 收集头版头条内容：在 headSection 创建后，section 标记开始前
+    // 注意：这里需要检查 inSection 是否为 false，因为 section 标记会设置 inSection = true
+    if (headSection && !inSection) {
       headlineContent.push(line);
     } else if (currentArticle) {
       articleContent.push(line);
@@ -441,7 +476,11 @@ function parseMarkdown(content) {
   }
   
   if (headSection) {
-    headSection.content = headlineContent.join('\n').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+    // 过滤掉引用块，避免重复渲染（引用块在 front-detail 中单独渲染）
+    const rawContent = headlineContent.join('\n');
+    const quoteBlockRegex = /^> (.+)$/gm;
+    const contentWithoutQuotes = rawContent.replace(quoteBlockRegex, '');
+    headSection.content = contentWithoutQuotes.replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
   }
   
   if (currentArticle) {

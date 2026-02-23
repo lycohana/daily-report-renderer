@@ -18,7 +18,7 @@ class InlineHandler extends BaseHandler {
           name: this.name,
           value: extracted.value || extracted,
           match: match[0],
-          index: match.index,
+          index: match.index
         });
       }
     }
@@ -27,7 +27,9 @@ class InlineHandler extends BaseHandler {
   }
 
   clean(content) {
-    if (!this.definition.clean) return content;
+    if (!this.definition.clean) {
+      return content;
+    }
     const regex = new RegExp(this.definition.syntax.source, 'gm');
     return content.replace(regex, '');
   }

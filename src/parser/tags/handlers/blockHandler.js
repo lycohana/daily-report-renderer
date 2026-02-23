@@ -18,7 +18,7 @@ class BlockHandler extends BaseHandler {
           name: this.name,
           data: extracted,
           match: match[0],
-          index: match.index,
+          index: match.index
         });
       }
     }
