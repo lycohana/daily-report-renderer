@@ -241,14 +241,6 @@
             </div>
             <% } %>
             
-            <% if (article.tags && article.tags.length > 0) { %>
-            <div class="article-meta">
-              <% article.tags.forEach(tag => { %>
-              <span class="article-tag"><%= tag %></span>
-              <% }); %>
-            </div>
-            <% } %>
-            
             <% if (article.content) { %>
             <div class="article-desc">
               <%- renderMarkdown(article.content) %>
@@ -259,6 +251,14 @@
             <div class="front-detail">
               <% article.quoteBlocks.forEach(quote => { %>
               <%- md.render(quote) %>
+              <% }); %>
+            </div>
+            <% } %>
+            
+            <% if (article.tags && article.tags.length > 0) { %>
+            <div class="article-meta" style="margin-top: 12px;">
+              <% article.tags.forEach(tag => { %>
+              <span class="article-tag"><%= tag %></span>
               <% }); %>
             </div>
             <% } %>
