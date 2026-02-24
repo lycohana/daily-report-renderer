@@ -20,7 +20,7 @@
 
 新增一个自定义标签只需两步：
 
-1. 在 `src/parser/tags/tags/` 目录下创建新的处理器文件
+1. 在 `src/parser/tags/handlers/` 目录下创建新的处理器文件
 2. 在视图模板中使用提取的数据
 
 示例：新增 `[author:张三]: #` 标签
@@ -72,6 +72,8 @@ module.exports = AuthorHandler;
 ```
 
 然后在视图中使用：
+
+**注意**：新标签字段需要在 `MetaCollector.js` 的 `collect()` 方法中收集，并在 `getResult()` 方法中返回。如果需要在 `sections` 或 `articles` 中访问，还需要在 `markdownParser.js` 中映射字段。
 
 ```ejs
 <!-- 在头版区域 -->
@@ -147,7 +149,7 @@ src/parser/tags/
 [icon:🤖]: #
 ```
 
-**处理器示例**: `tagHandler.js`, `fromHandler.js`
+**处理器示例**: `TagHandler.js`, `FromHandler.js`
 
 ### 2. 标记标签 (marker)
 
@@ -162,7 +164,7 @@ src/parser/tags/
 [articles]: #
 ```
 
-**处理器示例**: `headHandler.js`, `sectionHandler.js`, `articlesHandler.js`
+**处理器示例**: `HeadHandler.js`, `SectionHandler.js`, `ArticlesHandler.js`
 
 ### 3. 区块标签 (block)
 
@@ -179,7 +181,7 @@ src/parser/tags/
 > **引用：** 引用内容
 ```
 
-**处理器示例**: `dataHandler.js`, `quoteHandler.js`, `weatherHandler.js`
+**处理器示例**: `DataHandler.js`, `QuoteHandler.js`, `WeatherHandler.js`
 
 ---
 
@@ -252,12 +254,37 @@ module.exports = AuthorHandler;
 ```javascript
 case 'author':
   if (inArticles) {
+    if (!this.currentArticleMeta) {
+      this.currentArticleMeta = {
+        from: null,
+        fromStr: null,
+        tags: [],
+        isFirstArticle: false
+      };
+    }
     this.currentArticleMeta.author = value;
   } else if (inSection) {
     this.currentMeta.author = value;
+  } else if (inHeadline) {
+    this.headAuthor = value;
   }
   break;
 ```
+
+### 步骤 4：更新 getResult() 方法（如果需要）
+
+在 `MetaCollector.js` 的 `getResult()` 方法中添加返回字段：
+
+```javascript
+return {
+  // ... 其他字段
+  headAuthor: this.headAuthor, // 添加这一行
+};
+```
+
+### 步骤 5：更新 markdownParser.js（如果需要）
+
+如果新字段需要在 `sections` 或 `articles` 中访问，在 `markdownParser.js` 的 `parseMarkdown()` 函数中，将新字段从 `sectionArticleMeta` 映射到返回的 section/article 对象中。
 
 ---
 

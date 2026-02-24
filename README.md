@@ -42,6 +42,8 @@ npm start
 
 ## 项目结构
 
+### 目录结构
+
 ```
 daily-report-renderer/
 ├── src/
@@ -60,10 +62,10 @@ daily-report-renderer/
 │           ├── index.js              # 标签注册表
 │           ├── BaseHandler.js        # 基础处理器类
 │           ├── MetaCollector.js      # 元数据收集器
-│           └── tags/                 # 标签处理器
-│               ├── tagHandler.js     # [tag:] 标签
-│               ├── fromHandler.js    # [from:] 标签
-│               ├── sectionHandler.js # [section]: 标记
+│           └── handlers/             # 标签处理器
+│               ├── TagHandler.js     # [tag:] 标签
+│               ├── FromHandler.js    # [from:] 标签
+│               ├── SectionHandler.js # [section]: 标记
 │               └── ...               # 其他处理器
 ├── views/                     # EJS 模板
 │   ├── index.ejs             # 日报详情页
@@ -75,13 +77,105 @@ daily-report-renderer/
 │   ├── cache.test.js
 │   ├── fileWatcher.test.js
 │   └── tags/                 # 标签处理器测试
-│       ├── tagHandler.test.js
-│       ├── fromHandler.test.js
+│       ├── TagHandler.test.js
+│       ├── FromHandler.test.js
 │       └── ...
 ├── docs/                     # 文档
 │   └── tags-dev-guide.md     # 自定义标签开发指南
 ├── package.json
 └── .eslintrc.json
+```
+
+### 架构图
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         客户端浏览器                                  │
+│                    http://localhost:3000                            │
+└────────────────────────────────┬────────────────────────────────────┘
+                                 │ HTTP 请求
+                                 ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                        Express 服务器                                │
+│  ┌─────────────────────────────────────────────────────────────┐   │
+│  │                      routes.js                              │   │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │   │
+│  │  │ GET /    │  │ GET /list│  │GET /report│ │GET /health│   │   │
+│  │  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────┬─────┘   │   │
+│  └───────┼─────────────┼─────────────┼─────────────┼──────────┘   │
+└──────────┼─────────────┼─────────────┼─────────────┼──────────────┘
+           │             │             │             │
+           ▼             ▼             ▼             │
+┌──────────────────────┐ │ ┌──────────────────────┐ │
+│   markdownParser.js  │ │ │      cache.js        │ │
+│  ┌────────────────┐  │ │ │  ┌────────────────┐  │ │
+│  │ frontMatter    │  │ │ │  │ reportList     │  │ │
+│  │ customTags     │◄─┼─┼─┤  │ latestReport   │  │ │
+│  │ markdown-it    │  │ │ │  │ report cache   │  │ │
+│  └───────┬────────┘  │ │ │  └────────────────┘  │ │
+└──────────┼───────────┘ │ └──────────────────────┘ │
+           │             │                          │
+           ▼             │                          │
+┌──────────────────────┐ │                          │
+│   tags/index.js      │ │                          │
+│  ┌────────────────┐  │ │                          │
+│  │ TagRegistry    │  │ │                          │
+│  │ - initialize() │  │ │                          │
+│  │ - extractTags()│  │ │                          │
+│  └───────┬────────┘  │ │                          │
+└──────────┼───────────┘ │                          │
+           │             │                          │
+           ▼             │                          │
+    ┌──────┴──────┐      │                          │
+    │             │      │                          │
+    ▼             ▼      │                          │
+┌─────────┐  ┌──────────┴┴──────────────────────────┘
+│ handlers│  │  MetaCollector.js
+│ 目录     │  │  ┌─────────────────────────────┐
+│ - inline│  │  │ state: {                    │
+│ - marker│  │  │   inHeadline, inSection,    │
+│ - block │  │  │   inArticles, sectionIndex  │
+│         │  │  │ }                           │
+│         │  │  │                             │
+│         │  │  │ collect() - 收集元数据       │
+│         │  │  │ onMarker() - 处理标记        │
+│         │  │  │ onHeading() - 处理标题       │
+│         │  │  │ getResult() - 返回结果       │
+│         │  │  └─────────────────────────────┘
+└─────────┘  └─────────────────────────────────┘
+```
+
+### 数据流
+
+```
+Markdown 文件 → fileWatcher 监控变化
+     │
+     ▼
+markdownParser 解析
+     │
+     ├── frontMatter → 提取元数据 (date, number, weather, form)
+     │
+     └── customTags → 提取自定义标签
+          │
+          ▼
+     tags/index.js (TagRegistry)
+          │
+          ├── handlers/ → 解析标签语法
+          │    ├── inline (tag, from, icon...)
+          │    ├── marker (head, section, articles)
+          │    └── block (data, quote, weather)
+          │
+          └── MetaCollector → 收集元数据
+               │
+               ├── 跟踪文档状态 (headline/section/article)
+               ├── 收集标签数据
+               └── 构建 section/article 结构
+                    │
+                    ▼
+               渲染引擎 (EJS)
+                    │
+                    ▼
+               HTML 输出
 ```
 
 ## 配置
