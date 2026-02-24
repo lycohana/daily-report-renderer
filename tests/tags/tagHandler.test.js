@@ -2,7 +2,7 @@
  * TagHandler 测试
  */
 
-const TagHandler = require('../../src/parser/tags/tags/tagHandler');
+const TagHandler = require('../../src/parser/tags/handlers/TagHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('TagHandler', () => {

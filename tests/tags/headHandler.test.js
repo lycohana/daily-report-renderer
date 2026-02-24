@@ -2,7 +2,7 @@
  * HeadHandler 测试
  */
 
-const HeadHandler = require('../../src/parser/tags/tags/headHandler');
+const HeadHandler = require('../../src/parser/tags/handlers/HeadHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('HeadHandler', () => {

@@ -12,7 +12,7 @@ describe('BaseHandler', () => {
   });
 
   test('should have correct name', () => {
-    // BaseHandler 的 name 是从类名派生的，去掉 "Handler" 后缀并转小写
+    // BaseHandler �?name 是从类名派生的，去掉 "Handler" 后缀并转小写
     expect(handler.name).toBe('base');
   });
 
@@ -21,7 +21,7 @@ describe('BaseHandler', () => {
   });
 
   test('should not be instantiated directly', () => {
-    // BaseHandler 应该被继承使用
+    // BaseHandler 应该被继承使�?
     expect(handler).toBeInstanceOf(BaseHandler);
   });
 

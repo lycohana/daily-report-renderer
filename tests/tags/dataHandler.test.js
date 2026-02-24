@@ -2,7 +2,7 @@
  * DataHandler 测试
  */
 
-const DataHandler = require('../../src/parser/tags/tags/dataHandler');
+const DataHandler = require('../../src/parser/tags/handlers/DataHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('DataHandler', () => {
