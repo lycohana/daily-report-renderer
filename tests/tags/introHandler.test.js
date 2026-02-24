@@ -2,7 +2,7 @@
  * IntroHandler 测试
  */
 
-const IntroHandler = require('../../src/parser/tags/handlers/IntroHandler');
+const IntroHandler = require('../../src/parser/tags/handlers/inline/IntroHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('IntroHandler', () => {

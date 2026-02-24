@@ -1,9 +1,9 @@
 /**
- * <weather>...</weather> 标签处理器
- * 天气数据块
+ * <weather>...</weather> 标签处理�?
+ * 天气数据�?
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
 class WeatherHandler extends BaseHandler {
   constructor() {

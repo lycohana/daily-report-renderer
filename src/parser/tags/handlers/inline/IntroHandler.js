@@ -1,14 +1,14 @@
 /**
- * [fromstr:xxx] 标签处理器
- * 用于标记来源名称
+ * [intro:xxx] 标签处理�?
+ * 用于标记章节简�?
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class FromstrHandler extends BaseHandler {
+class IntroHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[fromstr:([^\]]+)\]:\s*#\s*$/m;
+    this.syntax = /^\[intro:([^\]]+)\]:\s*#\s*$/m;
   }
 
   getType() {
@@ -31,7 +31,7 @@ class FromstrHandler extends BaseHandler {
         });
 
         if (context?.collector) {
-          context.collector.collect('fromstr', match[1], context.state);
+          context.collector.collect('intro', match[1], context.state);
         }
       }
     }
@@ -44,4 +44,4 @@ class FromstrHandler extends BaseHandler {
   }
 }
 
-module.exports = FromstrHandler;
+module.exports = IntroHandler;

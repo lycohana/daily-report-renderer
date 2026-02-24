@@ -1,9 +1,9 @@
 /**
- * [icon:xxx] 标签处理器
+ * [icon:xxx] 标签处理�?
  * 用于标记章节图标
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
 class IconHandler extends BaseHandler {
   constructor() {
@@ -24,7 +24,7 @@ class IconHandler extends BaseHandler {
       const match = line.match(this.syntax);
 
       if (match) {
-        // 提取第一个 emoji 或整个字符串
+        // 提取第一�?emoji 或整个字符串
         const emojiMatch = match[1].match(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu);
         const value = emojiMatch ? emojiMatch[0] : match[1];
 

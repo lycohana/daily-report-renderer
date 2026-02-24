@@ -1,9 +1,9 @@
 /**
- * [think:xxx] 标签处理器
+ * [think:xxx] 标签处理�?
  * 用于标记观点
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
 class ThinkHandler extends BaseHandler {
   constructor() {

@@ -25,19 +25,26 @@ class TagRegistry {
       return;
     }
 
-    const files = fs.readdirSync(handlersDir);
-
-    for (const file of files) {
-      if (file.endsWith('Handler.js')) {
-        try {
-          const HandlerClass = require(path.join(handlersDir, file));
-          const handler = new HandlerClass();
-          this.handlers.push(handler);
-        } catch (err) {
-          console.error(`Failed to load handler ${file}:`, err.message);
+    // 递归扫描所有子目录 (inline/, marker/, block/)
+    const scanDirectory = (dir) => {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          scanDirectory(fullPath);
+        } else if (entry.isFile() && entry.name.endsWith('Handler.js')) {
+          try {
+            const HandlerClass = require(fullPath);
+            const handler = new HandlerClass();
+            this.handlers.push(handler);
+          } catch (err) {
+            console.error(`Failed to load handler ${entry.name}:`, err.message);
+          }
         }
       }
-    }
+    };
+
+    scanDirectory(handlersDir);
   }
 
   /**

@@ -2,7 +2,7 @@
  * FromHandler 测试
  */
 
-const FromHandler = require('../../src/parser/tags/handlers/FromHandler');
+const FromHandler = require('../../src/parser/tags/handlers/inline/FromHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('FromHandler', () => {

@@ -1,18 +1,18 @@
 /**
- * [intro:xxx] 标签处理器
- * 用于标记章节简介
+ * [head]: 标签处理�?
+ * 头版头条标记
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class IntroHandler extends BaseHandler {
+class HeadHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[intro:([^\]]+)\]:\s*#\s*$/m;
+    this.syntax = /^\[head\]:\s*#\s*$/m;
   }
 
   getType() {
-    return 'inline';
+    return 'marker';
   }
 
   parse(content, context) {
@@ -26,12 +26,12 @@ class IntroHandler extends BaseHandler {
       if (match) {
         results.push({
           name: this.name,
-          value: match[1],
+          match: match[0],
           lineIndex: i
         });
 
         if (context?.collector) {
-          context.collector.collect('intro', match[1], context.state);
+          context.collector.onMarker('head');
         }
       }
     }
@@ -44,4 +44,4 @@ class IntroHandler extends BaseHandler {
   }
 }
 
-module.exports = IntroHandler;
+module.exports = HeadHandler;

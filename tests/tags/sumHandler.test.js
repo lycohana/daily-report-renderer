@@ -2,7 +2,7 @@
  * SumHandler 测试
  */
 
-const SumHandler = require('../../src/parser/tags/handlers/SumHandler');
+const SumHandler = require('../../src/parser/tags/handlers/inline/SumHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('SumHandler', () => {

@@ -2,7 +2,7 @@
  * WeatherHandler 测试
  */
 
-const WeatherHandler = require('../../src/parser/tags/handlers/WeatherHandler');
+const WeatherHandler = require('../../src/parser/tags/handlers/block/WeatherHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('WeatherHandler', () => {

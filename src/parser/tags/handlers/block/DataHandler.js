@@ -1,9 +1,9 @@
 /**
- * <data>...</data> 标签处理器
- * 数据块
+ * <data>...</data> 标签处理�?
+ * 数据�?
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
 class DataHandler extends BaseHandler {
   constructor() {

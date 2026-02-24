@@ -1,14 +1,14 @@
 /**
- * [tag:xxx] 标签处理器
- * 用于标记文章标签
+ * [from:xxx] 标签处理�?
+ * 用于标记来源 URL
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class TagHandler extends BaseHandler {
+class FromHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[tag:([^\]]+)\]:\s*#\s*$/m;
+    this.syntax = /^\[from:([^\]]+)\]:\s*#\s*$/m;
   }
 
   getType() {
@@ -31,7 +31,7 @@ class TagHandler extends BaseHandler {
         });
 
         if (context?.collector) {
-          context.collector.collect('tag', match[1], context.state);
+          context.collector.collect('from', match[1], context.state);
         }
       }
     }
@@ -42,13 +42,6 @@ class TagHandler extends BaseHandler {
   clean(content) {
     return content.replace(this.syntax, '');
   }
-
-  getStyles() {
-    return `
-.front-tag{font-size:.72rem;padding:4px 12px;background:#f0ede8;border-radius:20px;color:var(--text-muted)}
-.article-tag{display:inline-block;background:#e8e6e1;padding:2px 10px;border-radius:4px;margin-right:8px;font-size:.72rem}
-    `.trim();
-  }
 }
 
-module.exports = TagHandler;
+module.exports = FromHandler;

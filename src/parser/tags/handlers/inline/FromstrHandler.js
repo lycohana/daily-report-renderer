@@ -1,18 +1,18 @@
 /**
- * [articles]: 标签处理器
- * 文章列表标记
+ * [fromstr:xxx] 标签处理�?
+ * 用于标记来源名称
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class ArticlesHandler extends BaseHandler {
+class FromstrHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[articles\]:\s*#\s*$/m;
+    this.syntax = /^\[fromstr:([^\]]+)\]:\s*#\s*$/m;
   }
 
   getType() {
-    return 'marker';
+    return 'inline';
   }
 
   parse(content, context) {
@@ -26,12 +26,12 @@ class ArticlesHandler extends BaseHandler {
       if (match) {
         results.push({
           name: this.name,
-          match: match[0],
+          value: match[1],
           lineIndex: i
         });
 
         if (context?.collector) {
-          context.collector.onMarker('articles');
+          context.collector.collect('fromstr', match[1], context.state);
         }
       }
     }
@@ -44,4 +44,4 @@ class ArticlesHandler extends BaseHandler {
   }
 }
 
-module.exports = ArticlesHandler;
+module.exports = FromstrHandler;

@@ -2,7 +2,7 @@
  * IconHandler 测试
  */
 
-const IconHandler = require('../../src/parser/tags/handlers/IconHandler');
+const IconHandler = require('../../src/parser/tags/handlers/inline/IconHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('IconHandler', () => {
