@@ -1,18 +1,18 @@
 /**
- * [section]: 标签处理器
- * 章节标记
+ * [sum:xxx] 标签处理�?
+ * 用于标记摘要
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class SectionHandler extends BaseHandler {
+class SumHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[section\]:\s*#\s*$/m;
+    this.syntax = /^\[sum:([^\]]+)\]:\s*#\s*$/m;
   }
 
   getType() {
-    return 'marker';
+    return 'inline';
   }
 
   parse(content, context) {
@@ -26,12 +26,12 @@ class SectionHandler extends BaseHandler {
       if (match) {
         results.push({
           name: this.name,
-          match: match[0],
+          value: match[1],
           lineIndex: i
         });
 
         if (context?.collector) {
-          context.collector.onMarker('section');
+          context.collector.collect('sum', match[1], context.state);
         }
       }
     }
@@ -44,4 +44,4 @@ class SectionHandler extends BaseHandler {
   }
 }
 
-module.exports = SectionHandler;
+module.exports = SumHandler;

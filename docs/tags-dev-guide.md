@@ -20,14 +20,17 @@
 
 新增一个自定义标签只需两步：
 
-1. 在 `src/parser/tags/handlers/` 目录下创建新的处理器文件
+1. 在 `src/parser/tags/handlers/` 对应类型目录下创建新的处理器文件
+   - `inline/` - 行内标签（如 `[tag:xxx]: #`）
+   - `marker/` - 标记标签（如 `[section]: #`）
+   - `block/` - 区块标签（如 `<data>...</data>`）
 2. 在视图模板中使用提取的数据
 
-示例：新增 `[author:张三]: #` 标签
+示例：新增 `[author:张三]: #` 标签（行内标签）
 
 ```javascript
-// src/parser/tags/handlers/AuthorHandler.js
-const BaseHandler = require('../BaseHandler');
+// src/parser/tags/handlers/inline/AuthorHandler.js
+const BaseHandler = require('../../BaseHandler');
 
 class AuthorHandler extends BaseHandler {
   constructor() {
@@ -110,19 +113,22 @@ src/parser/tags/
 ├── MetaCollector.js        # 元数据收集器（状态机）
 ├── index.js               # 标签注册表（自动发现）
 └── handlers/              # 标签处理器目录
-    ├── TagHandler.js      # [tag:] 标签
-    ├── FromHandler.js     # [from:] 标签
-    ├── FromstrHandler.js  # [fromstr:] 标签
-    ├── IconHandler.js     # [icon:] 标签
-    ├── IntroHandler.js    # [intro:] 标签
-    ├── SumHandler.js      # [sum:] 标签
-    ├── ThinkHandler.js    # [think:] 标签
-    ├── HeadHandler.js     # [head]: 标记
-    ├── SectionHandler.js  # [section]: 标记
-    ├── ArticlesHandler.js # [articles]: 标记
-    ├── DataHandler.js     # [data:] 数据块
-    ├── QuoteHandler.js    # > 引用块
-    └── WeatherHandler.js  # <weather> 天气块
+    ├── inline/            # 行内标签处理器
+    │   ├── TagHandler.js      # [tag:] 标签
+    │   ├── FromHandler.js     # [from:] 标签
+    │   ├── FromstrHandler.js  # [fromstr:] 标签
+    │   ├── IconHandler.js     # [icon:] 标签
+    │   ├── IntroHandler.js    # [intro:] 标签
+    │   ├── SumHandler.js      # [sum:] 标签
+    │   └── ThinkHandler.js    # [think:] 标签
+    ├── marker/            # 标记标签处理器
+    │   ├── HeadHandler.js     # [head]: 标记
+    │   ├── SectionHandler.js  # [section]: 标记
+    │   └── ArticlesHandler.js # [articles]: 标记
+    └── block/             # 区块标签处理器
+        ├── DataHandler.js     # [data:] 数据块
+        ├── QuoteHandler.js    # > 引用块
+        └── WeatherHandler.js  # <weather> 天气块
 ```
 
 ### 核心组件
@@ -363,7 +369,7 @@ this.state = {
 为新增的标签创建测试文件 `tests/tags/AuthorHandler.test.js`：
 
 ```javascript
-const AuthorHandler = require('../../src/parser/tags/handlers/AuthorHandler');
+const AuthorHandler = require('../../src/parser/tags/handlers/inline/AuthorHandler');
 
 describe('AuthorHandler', () => {
   let handler;
@@ -416,7 +422,7 @@ getStyles() {
 ## 完整示例
 
 查看现有处理器作为参考：
-- [`TagHandler.js`](src/parser/tags/handlers/TagHandler.js) - 简单的行内标签
-- [`FromHandler.js`](src/parser/tags/handlers/FromHandler.js) - 带 URL 的标签
-- [`DataHandler.js`](src/parser/tags/handlers/DataHandler.js) - 复杂的区块标签
-- [`QuoteHandler.js`](src/parser/tags/handlers/QuoteHandler.js) - 引用块处理
+- [`TagHandler.js`](src/parser/tags/handlers/inline/TagHandler.js) - 简单的行内标签
+- [`FromHandler.js`](src/parser/tags/handlers/inline/FromHandler.js) - 带 URL 的标签
+- [`DataHandler.js`](src/parser/tags/handlers/block/DataHandler.js) - 复杂的区块标签
+- [`QuoteHandler.js`](src/parser/tags/handlers/block/QuoteHandler.js) - 引用块处理

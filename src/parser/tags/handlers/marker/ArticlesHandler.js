@@ -1,14 +1,14 @@
 /**
- * [head]: 标签处理器
- * 头版头条标记
+ * [articles]: 标签处理�?
+ * 文章列表标记
  */
 
-const BaseHandler = require('../BaseHandler');
+const BaseHandler = require('../../BaseHandler');
 
-class HeadHandler extends BaseHandler {
+class ArticlesHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /^\[head\]:\s*#\s*$/m;
+    this.syntax = /^\[articles\]:\s*#\s*$/m;
   }
 
   getType() {
@@ -31,7 +31,7 @@ class HeadHandler extends BaseHandler {
         });
 
         if (context?.collector) {
-          context.collector.onMarker('head');
+          context.collector.onMarker('articles');
         }
       }
     }
@@ -44,4 +44,4 @@ class HeadHandler extends BaseHandler {
   }
 }
 
-module.exports = HeadHandler;
+module.exports = ArticlesHandler;
