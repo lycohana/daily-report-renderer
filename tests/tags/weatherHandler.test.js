@@ -2,7 +2,7 @@
  * WeatherHandler 测试
  */
 
-const WeatherHandler = require('../../src/parser/tags/tags/weatherHandler');
+const WeatherHandler = require('../../src/parser/tags/handlers/WeatherHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('WeatherHandler', () => {
@@ -53,7 +53,7 @@ describe('WeatherHandler', () => {
   });
 
   test('should parse multiple days', () => {
-    const content = '<weather><day>周一|☀️|晴|26°C/17°C</day><day>周二|☁️|多云|25°C/16°C</day></weather>';
+    const content = '<weather><day>周一|☀️|晴|26°C/17°C</day><day>周二|🌧️|雨|20°C/15°C</day></weather>';
     const results = handler.parse(content, context);
     expect(results).toHaveLength(1);
     expect(results[0].data.items).toHaveLength(2);
@@ -67,7 +67,7 @@ describe('WeatherHandler', () => {
   });
 
   test('should not clean weather block', () => {
-    const content = '<weather><day>周一|☀️|晴|26°C/17°C</day></weather>Some content';
+    const content = '<weather><day>周一|☀️|晴|26°C/17°C</day></weather>';
     const cleaned = handler.clean(content);
     expect(cleaned).toBe(content);
   });

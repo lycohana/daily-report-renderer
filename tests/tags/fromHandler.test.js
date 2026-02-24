@@ -2,7 +2,7 @@
  * FromHandler 测试
  */
 
-const FromHandler = require('../../src/parser/tags/tags/fromHandler');
+const FromHandler = require('../../src/parser/tags/handlers/FromHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('FromHandler', () => {
@@ -35,7 +35,7 @@ describe('FromHandler', () => {
     const content = '[from:https://example.com]: #';
     handler.parse(content, context);
     const result = collector.getResult();
-    // from 标签收集到 sectionArticleMeta 中，headFrom 由 customTags.js 特殊处理
+    // from 标签收集�?sectionArticleMeta 中，headFrom �?customTags.js 特殊处理
     expect(result.sectionArticleMeta).toBeDefined();
   });
 

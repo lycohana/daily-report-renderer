@@ -18,19 +18,19 @@ class TagRegistry {
    * 自动发现并注册所有标签处理器
    */
   initialize() {
-    const tagsDir = path.join(__dirname, 'tags');
+    const handlersDir = path.join(__dirname, 'handlers');
 
-    if (!fs.existsSync(tagsDir)) {
-      console.warn(`Tags directory not found: ${tagsDir}`);
+    if (!fs.existsSync(handlersDir)) {
+      console.warn(`Handlers directory not found: ${handlersDir}`);
       return;
     }
 
-    const files = fs.readdirSync(tagsDir);
+    const files = fs.readdirSync(handlersDir);
 
     for (const file of files) {
       if (file.endsWith('Handler.js')) {
         try {
-          const HandlerClass = require(path.join(tagsDir, file));
+          const HandlerClass = require(path.join(handlersDir, file));
           const handler = new HandlerClass();
           this.handlers.push(handler);
         } catch (err) {

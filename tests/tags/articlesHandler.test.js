@@ -2,7 +2,7 @@
  * ArticlesHandler 测试
  */
 
-const ArticlesHandler = require('../../src/parser/tags/tags/articlesHandler');
+const ArticlesHandler = require('../../src/parser/tags/handlers/ArticlesHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('ArticlesHandler', () => {

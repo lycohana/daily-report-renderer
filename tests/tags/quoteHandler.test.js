@@ -2,7 +2,7 @@
  * QuoteHandler 测试
  */
 
-const QuoteHandler = require('../../src/parser/tags/tags/quoteHandler');
+const QuoteHandler = require('../../src/parser/tags/handlers/QuoteHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('QuoteHandler', () => {

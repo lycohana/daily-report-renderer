@@ -2,7 +2,7 @@
  * SectionHandler 测试
  */
 
-const SectionHandler = require('../../src/parser/tags/tags/sectionHandler');
+const SectionHandler = require('../../src/parser/tags/handlers/SectionHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('SectionHandler', () => {

@@ -2,7 +2,7 @@
  * ThinkHandler 测试
  */
 
-const ThinkHandler = require('../../src/parser/tags/tags/thinkHandler');
+const ThinkHandler = require('../../src/parser/tags/handlers/ThinkHandler');
 const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('ThinkHandler', () => {
