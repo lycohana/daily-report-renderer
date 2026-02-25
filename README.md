@@ -21,7 +21,7 @@
 
 ```bash
 # 克隆项目
-git clone <repository-url>
+git clone https://github.com/lycohana/daily-report-renderer
 cd daily-report-renderer
 
 # 安装依赖
