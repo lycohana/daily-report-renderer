@@ -59,7 +59,7 @@ class NotesBlockHandler extends BaseHandler {
     
     let html = '<div class="notes-section"><div class="notes-title">随笔笔记</div><div class="notes-grid">';
     
-    notes.forEach((note, index) => {
+    notes.forEach((note) => {
       // 对每个 note 内容进行 Markdown 渲染
       const renderedNote = this.md.render(note).trim();
       // 移除包裹的 <p> 标签（如果只有一个段落）

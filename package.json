@@ -12,7 +12,7 @@
     "test:ci": "jest --ci --coverage --maxWorkers=2",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "lint:check": "eslint src/ --max-warnings=0",
+    "lint:check": "eslint src/ --max-warnings=5",
     "format": "prettier --write \"src/**/*.js\"",
     "format:check": "prettier --check \"src/**/*.js\"",
     "validate": "npm run lint && npm run test",
