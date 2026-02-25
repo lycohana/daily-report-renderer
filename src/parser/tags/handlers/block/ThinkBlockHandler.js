@@ -18,6 +18,8 @@ class ThinkBlockHandler extends BaseHandler {
 
   parseDocument(content, _context) {
     const results = [];
+    // 重置正则的 lastIndex
+    this.syntax.lastIndex = 0;
     const matches = [...content.matchAll(this.syntax)];
     
     for (const match of matches) {
@@ -37,7 +39,8 @@ class ThinkBlockHandler extends BaseHandler {
   }
 
   clean(content) {
-    return content.replace(this.syntax, '');
+    // 不删除标签，保留原始 <think> 标签让 processBlocks 在 HTML 渲染后处理
+    return content;
   }
 
   getStyles() {

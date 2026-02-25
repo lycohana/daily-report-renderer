@@ -174,7 +174,33 @@ function processNotesBlocks(html, md) {
 }
 
 /**
- * 处理 HTML 中的所有块（data + weather + notes）
+ * 处理 HTML 中的 <sum> 块
+ *
+ * @param {string} html - 原始 HTML 内容
+ * @returns {string} 处理后的 HTML
+ */
+function processSumBlocks(html) {
+  return html.replace(/<sum>([\s\S]*?)<\/sum>/g, (match, p1) => {
+    const value = p1.trim();
+    return `<div class="analysis-box"><div class="analysis-title">总结</div><div class="analysis-content">${value}</div></div>`;
+  });
+}
+
+/**
+ * 处理 HTML 中的 <think>块
+ *
+ * @param {string} html - 原始 HTML 内容
+ * @returns {string} 处理后的 HTML
+ */
+function processThinkBlocks(html) {
+  return html.replace(/<think>([\s\S]*?)<\/think>/g, (match, p1) => {
+    const value = p1.trim();
+    return `<div class="thought-box"><div class="thought-title">思考</div><div class="thought-content">${value}</div></div>`;
+  });
+}
+
+/**
+ * 处理 HTML 中的所有块（data + weather + notes + sum + think）
  *
  * @param {string} html - 原始 HTML 内容
  * @param {Object} md - markdown-it 实例
@@ -183,6 +209,8 @@ function processNotesBlocks(html, md) {
 function processBlocks(html, md) {
   let result = processDataBlocks(html);
   result = processWeatherBlocks(result);
+  result = processSumBlocks(result);
+  result = processThinkBlocks(result);
   if (md) {
     result = processNotesBlocks(result, md);
   }

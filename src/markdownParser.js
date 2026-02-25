@@ -497,11 +497,7 @@ function renderHtmlContent(state, renderMode) {
   let htmlContent = md.render(state.customTags.cleanContent);
   htmlContent = processBlocks(htmlContent, md);
   htmlContent = applySecurityMode(htmlContent, renderMode);
-  
-  // 注入 block 标签的原始 HTML（如 <sum> 和 <think>）
-  if (state.customTags.blockHtml) {
-    htmlContent += '\n' + state.customTags.blockHtml;
-  }
+  // sum 和 think 标签现在由 processBlocks 直接处理
   
   // 单独渲染 headSection 的 content
   let headSectionHtml = '';
