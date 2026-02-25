@@ -48,10 +48,11 @@ describe('Blocks Module', () => {
     });
 
     test('should escape HTML in data values', () => {
-      const dataContent = '<num>test & value</num><str>quoted value</str>';
+      const dataContent = `<num>test & value</num><str>"quoted" and 'single'</str>`;
       const result = renderDataBlock(dataContent);
-      
-      expect(result).toContain('test & value');
+
+      expect(result).toContain('test &amp; value');
+      expect(result).toContain('&quot;quoted&quot; and &#039;single&#039;');
     });
   });
 
@@ -102,10 +103,14 @@ describe('Blocks Module', () => {
     });
 
     test('should escape HTML in weather values', () => {
-      const weatherContent = '<day>test & day|b city b|i icon i|u condition u|s temp s</day>';
+      const weatherContent = `<day>test & day|city's|icon "x"|condition & clear|"temp"</day>`;
       const result = renderWeatherBlock(weatherContent, false);
-      
-      expect(result).toContain('test & day');
+
+      expect(result).toContain('test &amp; day');
+      expect(result).toContain('city&#039;s');
+      expect(result).toContain('icon &quot;x&quot;');
+      expect(result).toContain('condition &amp; clear');
+      expect(result).toContain('&quot;temp&quot;');
     });
   });
 

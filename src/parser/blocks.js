@@ -18,10 +18,10 @@ function escapeHtml(str) {
     return str;
   }
   return str
-    .replace(/&/g, '&')
-    .replace(/</g, '<')
-    .replace(/>/g, '>')
-    .replace(/"/g, '"')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
 }
 
@@ -33,7 +33,7 @@ function escapeHtml(str) {
  */
 function renderDataBlock(dataContent) {
   const items = [];
-  const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
+  const numStrRegex = /<num>([\s\S]*?)<\/num>\s*<str>([\s\S]*?)<\/str>/g;
   let numMatch;
   while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
     items.push({ value: escapeHtml(numMatch[1]), label: escapeHtml(numMatch[2]) });
@@ -60,7 +60,7 @@ function renderDataBlock(dataContent) {
  * @returns {string} 渲染后的 HTML，如果无有效数据则返回空字符串
  */
 function renderWeatherBlock(weatherContent, isCenter = false) {
-  const dayRegex = /<day>([^<]+)<\/day>/g;
+  const dayRegex = /<day>([\s\S]*?)<\/day>/g;
   const items = [];
   let m;
   while ((m = dayRegex.exec(weatherContent)) !== null) {
