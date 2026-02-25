@@ -113,14 +113,22 @@ class TagRegistry {
     }
 
     // 处理 block 标签（不需要逐行）
-    const blockHtmlReplacements = [];
+    // notesHtml 用于底部渲染，其他 block HTML 用于原地渲染
+    const notesHtmlReplacements = [];
+    const inlineBlockHtmlReplacements = [];
     for (const handler of blockHandlers) {
       if (typeof handler.parseDocument === 'function') {
         const results = handler.parseDocument(content, context);
         if (results && Array.isArray(results)) {
           for (const result of results) {
             if (result && result.html) {
-              blockHtmlReplacements.push(result.html);
+              // notes 标签的 HTML 单独存储，用于底部渲染
+              if (handler.name === 'notesblock') {
+                notesHtmlReplacements.push(result.html);
+              } else {
+                // 其他 block 标签（如 sum, think）的 HTML 用于原地渲染
+                inlineBlockHtmlReplacements.push(result.html);
+              }
             }
           }
         }
@@ -144,8 +152,10 @@ class TagRegistry {
         cleanLines.push(line);
       }
     }
-    // block HTML 作为原始 HTML 存储，不通过 markdown 渲染
-    const blockHtmlContent = blockHtmlReplacements.join('\n');
+    // inline block HTML（如 sum, think）作为原始 HTML 存储，用于原地渲染
+    const inlineBlockHtmlContent = inlineBlockHtmlReplacements.join('\n');
+    // notes HTML 单独存储，用于底部渲染
+    const notesHtmlContent = notesHtmlReplacements.join('\n');
     let cleanContent = cleanLines.join('\n');
     
     // 清理 block 标签
@@ -159,9 +169,13 @@ class TagRegistry {
     // 构建返回结果
     const tags = this._buildTagsResult(meta);
 
-    // 将 block HTML 添加到 tags 中，供后续直接注入
-    if (blockHtmlContent) {
-      tags.blockHtml = blockHtmlContent;
+    // 将 inline block HTML 添加到 tags 中，供原地渲染
+    if (inlineBlockHtmlContent) {
+      tags.blockHtml = inlineBlockHtmlContent;
+    }
+    // 将 notes HTML 添加到 tags 中，供底部渲染
+    if (notesHtmlContent) {
+      tags.notesHtml = notesHtmlContent;
     }
 
     return { tags, cleanContent };
