@@ -525,26 +525,7 @@ function parseMarkdown(content) {
   let htmlContent = md.render(cleanContent);
   
   // 后处理：将<data>块替换为HTML
-  htmlContent = htmlContent.replace(/<data>([\s\S]*?)<\/data>/g, (match, dataContent) => {
-    const items = [];
-    const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
-    let numMatch;
-    while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-      items.push({ value: numMatch[1], label: numMatch[2] });
-    }
-    
-    if (items.length > 0) {
-      const itemsHtml = items.map(item => 
-        `<div class="front-stat">
-          <div class="front-stat-value">${item.value}</div>
-          <div class="front-stat-label">${item.label}</div>
-        </div>`
-      ).join('');
-      
-      return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
-    }
-    return '';
-  });
+  htmlContent = processDataBlocks(htmlContent);
   
   // 单独渲染headSection的content并应用后处理
   let headSectionHtml = '';
