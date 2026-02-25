@@ -350,7 +350,9 @@ class MetaCollector {
    * @private
    */
   _articleMetaHasContent() {
-    if (!this.currentArticleMeta) return false;
+    if (!this.currentArticleMeta) {
+      return false;
+    }
     return !!(
       this.currentArticleMeta.from ||
       this.currentArticleMeta.fromStr ||
