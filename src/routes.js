@@ -5,6 +5,7 @@ const config = require('./config');
 const cache = require('./cache');
 const markdownParser = require('./markdownParser');
 const fileWatcher = require('./fileWatcher');
+const { processBlocks } = require('./parser/blocks');
 
 const router = express.Router();
 
@@ -102,71 +103,8 @@ router.get('/', async (req, res) => {
           return '';
         }
         let html = markdownParser.md.render(content);
-        // 后处理：将<data>块替换为HTML
-        html = html.replace(/<data>([\s\S]*?)<\/data>/g, (match, dataContent) => {
-          const items = [];
-          const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
-          let numMatch;
-          while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-            items.push({ value: numMatch[1], label: numMatch[2] });
-          }
-          if (items.length > 0) {
-            const itemsHtml = items.map(item => 
-              `<div class="front-stat">
-                <div class="front-stat-value">${item.value}</div>
-                <div class="front-stat-label">${item.label}</div>
-              </div>`
-            ).join('');
-            return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
-          }
-          return '';
-        });
-        // 后处理：将<weather>块替换为HTML（支持位置渲染）
-        html = html.replace(/<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g, (match, weatherContent) => {
-          const isCenter = match.includes('center');
-          const dayRegex = /<day>([^<]+)<\/day>/g;
-          const items = [];
-          let m;
-          while ((m = dayRegex.exec(weatherContent)) !== null) {
-            const parts = m[1].split('|');
-            if (parts.length >= 4) {
-              let day, city, icon, condition, temp;
-              if (parts.length === 4) {
-                // 无城市: 日期|图标|天气|温度
-                day = parts[0].trim();
-                city = null;
-                icon = parts[1].trim();
-                condition = parts[2].trim();
-                temp = parts[3].trim();
-              } else {
-                // 有城市: 日期|城市|图标|天气|温度
-                day = parts[0].trim();
-                city = parts[1].trim();
-                icon = parts[2].trim();
-                condition = parts[3].trim();
-                temp = parts[4].trim();
-              }
-              items.push({ day, city, icon, condition, temp });
-            }
-          }
-          if (items.length > 0) {
-            const centerClass = isCenter ? ' weather-center' : '';
-            const itemsHtml = items.map(item => {
-              const cityHtml = item.city 
-                ? `<div class="weather-city">${item.city}</div>` 
-                : '<div class="weather-city weather-city-placeholder">-</div>';
-              return `<div class="weather-item">
-                <div class="weather-icon">${item.icon}</div>
-                ${cityHtml}
-                <div class="weather-condition">${item.condition}</div>
-                <div class="weather-temp">${item.temp}</div>
-                <div class="weather-day">${item.day}</div>
-              </div>`;
-            }).join('');
-            return `<div class="weather-grid${centerClass}" data-inline="true">${itemsHtml}</div>`;
-          }
-          return '';
-        });
+        // 后处理：统一处理 <data> 和 <weather> 块
+        html = processBlocks(html);
         return html;
       }
     };
@@ -287,71 +225,8 @@ router.get('/report/:filename', async (req, res) => {
           return '';
         }
         let html = markdownParser.md.render(content);
-        // 后处理：将<data>块替换为HTML
-        html = html.replace(/<data>([\s\S]*?)<\/data>/g, (match, dataContent) => {
-          const items = [];
-          const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
-          let numMatch;
-          while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-            items.push({ value: numMatch[1], label: numMatch[2] });
-          }
-          if (items.length > 0) {
-            const itemsHtml = items.map(item => 
-              `<div class="front-stat">
-                <div class="front-stat-value">${item.value}</div>
-                <div class="front-stat-label">${item.label}</div>
-              </div>`
-            ).join('');
-            return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
-          }
-          return '';
-        });
-        // 后处理：将<weather>块替换为HTML（支持位置渲染）
-        html = html.replace(/<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g, (match, weatherContent) => {
-          const isCenter = match.includes('center');
-          const dayRegex = /<day>([^<]+)<\/day>/g;
-          const items = [];
-          let m;
-          while ((m = dayRegex.exec(weatherContent)) !== null) {
-            const parts = m[1].split('|');
-            if (parts.length >= 4) {
-              let day, city, icon, condition, temp;
-              if (parts.length === 4) {
-                // 无城市: 日期|图标|天气|温度
-                day = parts[0].trim();
-                city = null;
-                icon = parts[1].trim();
-                condition = parts[2].trim();
-                temp = parts[3].trim();
-              } else {
-                // 有城市: 日期|城市|图标|天气|温度
-                day = parts[0].trim();
-                city = parts[1].trim();
-                icon = parts[2].trim();
-                condition = parts[3].trim();
-                temp = parts[4].trim();
-              }
-              items.push({ day, city, icon, condition, temp });
-            }
-          }
-          if (items.length > 0) {
-            const centerClass = isCenter ? ' weather-center' : '';
-            const itemsHtml = items.map(item => {
-              const cityHtml = item.city 
-                ? `<div class="weather-city">${item.city}</div>` 
-                : '<div class="weather-city weather-city-placeholder">-</div>';
-              return `<div class="weather-item">
-                <div class="weather-icon">${item.icon}</div>
-                ${cityHtml}
-                <div class="weather-condition">${item.condition}</div>
-                <div class="weather-temp">${item.temp}</div>
-                <div class="weather-day">${item.day}</div>
-              </div>`;
-            }).join('');
-            return `<div class="weather-grid${centerClass}" data-inline="true">${itemsHtml}</div>`;
-          }
-          return '';
-        });
+        // 后处理：统一处理 <data> 和 <weather> 块
+        html = processBlocks(html);
         return html;
       }
     };

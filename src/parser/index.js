@@ -4,7 +4,7 @@
  * 统一导出所有解析器模块
  */
 
-const markdownParser = require('./markdownParser');
+const markdownParser = require('../markdownParser');
 
 module.exports = {
   parseMarkdown: markdownParser.parseMarkdown,

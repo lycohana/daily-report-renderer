@@ -47,6 +47,7 @@ const { createMarkdownIt } = require('./parser/config');
 const { parseFrontMatter } = require('./parser/frontMatter');
 const { extractCustomTags } = require('./parser/customTags');
 const { extractTitleFromFrontMatter, extractEditionFromFrontMatter } = require('./parser/utils');
+const { processDataBlocks } = require('./parser/blocks');
 
 const md = createMarkdownIt();
 
@@ -549,26 +550,7 @@ function parseMarkdown(content) {
   let headSectionHtml = '';
   if (headSection && headSection.content) {
     headSectionHtml = md.render(headSection.content);
-    headSectionHtml = headSectionHtml.replace(/<data>([\s\S]*?)<\/data>/g, (match, dataContent) => {
-      const items = [];
-      const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
-      let numMatch;
-      while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-        items.push({ value: numMatch[1], label: numMatch[2] });
-      }
-      
-      if (items.length > 0) {
-        const itemsHtml = items.map(item => 
-          `<div class="front-stat">
-            <div class="front-stat-value">${item.value}</div>
-            <div class="front-stat-label">${item.label}</div>
-          </div>`
-        ).join('');
-        
-        return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
-      }
-      return '';
-    });
+    headSectionHtml = processDataBlocks(headSectionHtml);
   }
   
   return {
