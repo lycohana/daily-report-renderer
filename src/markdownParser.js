@@ -101,6 +101,35 @@ function finalizeArticle(currentArticle, articleContent, currentSection) {
   return null;
 }
 
+function createSectionNode(title, sectionMeta) {
+  return {
+    type: 'section',
+    title,
+    articles: [],
+    intro: sectionMeta?.intro || null,
+    icon: sectionMeta?.icon || null,
+    tags: [...(sectionMeta?.tags || [])],
+    summary: sectionMeta?.sum || null,
+    think: sectionMeta?.thinks?.[0] || null,
+    dataBlocks: null
+  };
+}
+
+function createArticleNode(title, articleMeta) {
+  return {
+    type: 'article',
+    title,
+    content: '',
+    quoteBlocks: [],
+    from: articleMeta?.from || null,
+    fromStr: articleMeta?.fromStr || null,
+    tags: articleMeta?.tags || [],
+    summary: articleMeta?.sum || null,
+    think: articleMeta?.thinks?.[0] || null,
+    dataBlocks: null
+  };
+}
+
 function sanitizeStructuredMeta(sections, renderMode) {
   if (renderMode !== 'safe') {
     return sections;
@@ -165,9 +194,6 @@ function parseMarkdown(content) {
   // 注意：cleanContent 中 [head]: 已被清理，需要从 customTags 中判断
   const hasHeadMarker = customTags.hasHeadMarker || !!customTags.headlineTags || !!customTags.headFrom;
   let inSection = false;
-  let currentSectionTags = [];
-  let currentSectionIcon = null;
-  let currentSectionIntro = null;
   let sectionIndex = -1;
   let articleIndex = 0;
   // 使用 customTags.sectionArticleMeta 来跟踪 section 元数据
@@ -209,23 +235,8 @@ function parseMarkdown(content) {
       
       // 从 customTags 中获取 section 元数据
       const sectionMeta = sectionMetas[currentSectionMetaIndex];
-      if (sectionMeta) {
-        currentSectionIcon = sectionMeta.icon;
-        currentSectionIntro = sectionMeta.intro;
-        currentSectionTags = [...(sectionMeta.tags || [])];
-      }
       
-      currentSection = {
-        type: 'section',
-        title: line.substring(2).trim(),
-        articles: [],
-        intro: currentSectionIntro,
-        icon: currentSectionIcon,
-        tags: currentSectionTags,
-        summary: sectionMeta?.sum || null,
-        think: sectionMeta?.thinks?.[0] || null,
-        dataBlocks: null
-      };
+      currentSection = createSectionNode(line.substring(2).trim(), sectionMeta);
       
       currentSectionMetaIndex++;
 
@@ -249,27 +260,8 @@ function parseMarkdown(content) {
       
       // 从 customTags 中获取 section 元数据
       const sectionMeta = sectionMetas[currentSectionMetaIndex];
-      if (sectionMeta) {
-        currentSectionIcon = sectionMeta.icon;
-        currentSectionIntro = sectionMeta.intro;
-        currentSectionTags = [...(sectionMeta.tags || [])];
-      } else {
-        currentSectionIcon = null;
-        currentSectionIntro = null;
-        currentSectionTags = [];
-      }
       
-      currentSection = {
-        type: 'section',
-        title: line.substring(2).trim(),
-        articles: [],
-        intro: currentSectionIntro,
-        icon: currentSectionIcon,
-        tags: currentSectionTags,
-        summary: sectionMeta?.sum || null,
-        think: sectionMeta?.thinks?.[0] || null,
-        dataBlocks: null
-      };
+      currentSection = createSectionNode(line.substring(2).trim(), sectionMeta);
       
       currentSectionMetaIndex++;
 
@@ -284,43 +276,17 @@ function parseMarkdown(content) {
         currentArticle = finalizeArticle(currentArticle, articleContent, currentSection);
       }
       if (currentSection) {
-        currentSection.tags = currentSectionTags;
-        currentSection.icon = currentSectionIcon;
         sections.push(currentSection);
       }
       
-      currentSectionTags = [];
-      currentSectionIcon = null;
-      currentSectionIntro = null;
       articleContent = [];
       articleIndex = 0;
       
       // 新架构：sectionArticleMeta 是简单数组，每个 section 对应一个对象
       // 注意：sectionIndex 从 0 开始，所以直接使用 sectionIndex 作为索引
       const sectionMeta = customTags.sectionArticleMeta && customTags.sectionArticleMeta[sectionIndex];
-      if (sectionMeta) {
-        if (sectionMeta.icon) {
-          currentSectionIcon = sectionMeta.icon;
-        }
-        if (sectionMeta.intro) {
-          currentSectionIntro = sectionMeta.intro;
-        }
-        if (sectionMeta.tags) {
-          currentSectionTags = [...sectionMeta.tags];
-        }
-      }
       
-      currentSection = {
-        type: 'section',
-        title: line.substring(2).trim(),
-        articles: [],
-        intro: currentSectionIntro,
-        icon: currentSectionIcon,
-        tags: currentSectionTags,
-        summary: sectionMeta?.sum || null,
-        think: sectionMeta?.thinks?.[0] || null,
-        dataBlocks: null
-      };
+      currentSection = createSectionNode(line.substring(2).trim(), sectionMeta);
       
       // 从customTags中获取section级别的dataBlocks
       if (customTags.dataBlocks?.sections && customTags.dataBlocks.sections[sectionIndex]) {
@@ -354,18 +320,7 @@ function parseMarkdown(content) {
         }
       }
       
-      currentArticle = {
-        type: 'article',
-        title: articleTitle,
-        content: '',
-        quoteBlocks: [],
-        from: articleMeta?.from || null,
-        fromStr: articleMeta?.fromStr || null,
-        tags: articleMeta?.tags || [],
-        summary: articleMeta?.sum || null,
-        think: articleMeta?.thinks?.[0] || null,
-        dataBlocks: null
-      };
+      currentArticle = createArticleNode(articleTitle, articleMeta);
       
       // 从customTags中获取article级别的dataBlocks
       if (customTags.dataBlocks?.articles && customTags.dataBlocks.articles[sectionIndex]) {
@@ -435,7 +390,6 @@ function parseMarkdown(content) {
   }
   
   if (currentSection) {
-    currentSection.tags = currentSectionTags;
     sections.push(currentSection);
   }
   
