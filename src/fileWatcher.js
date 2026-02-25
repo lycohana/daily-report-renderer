@@ -9,13 +9,13 @@ const changeCallbacks = [];
 function parseFilename(filename) {
   const basename = path.basename(filename, '.md');
   const dateMatch = basename.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-  const numMatch = basename.match(/-(\d+)-/);
+  const editionMatch = basename.match(/^daily-report-(\d+)-/i);
   
   if (dateMatch) {
     return {
       filename,
       basename,
-      number: numMatch ? parseInt(numMatch[1]) : 0,
+      number: editionMatch ? parseInt(editionMatch[1], 10) : 0,
       year: parseInt(dateMatch[1]),
       month: parseInt(dateMatch[2]),
       day: parseInt(dateMatch[3]),

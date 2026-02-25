@@ -56,7 +56,7 @@ daily-report-renderer/
 │   └── parser/               # 解析器子模块
 │       ├── config.js         # markdown-it 配置
 │       ├── frontMatter.js    # Front Matter 解析
-│       ├── customTags.js     # 自定义标签提取（facade）
+│       ├── customTags.js     # 自定义标签提取（Facade）
 │       ├── utils.js          # 工具函数
 │       └── tags/             # 标签处理器模块
 │           ├── index.js              # 标签注册表
@@ -83,7 +83,7 @@ daily-report-renderer/
 ├── docs/                     # 文档
 │   └── tags-dev-guide.md     # 自定义标签开发指南
 ├── package.json
-└── .eslintrc.json
+└── eslint.config.js
 ```
 
 ### 架构图
