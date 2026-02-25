@@ -16,7 +16,7 @@ class ThinkBlockHandler extends BaseHandler {
     return 'block';
   }
 
-  parseDocument(content, context) {
+  parseDocument(content, _context) {
     const results = [];
     const matches = [...content.matchAll(this.syntax)];
     
