@@ -34,6 +34,15 @@ describe('File Watcher', () => {
       expect(result.number).toBe(42);
       expect(result.sortKey).toBe('20260222');
     });
+
+    test('should not treat month as edition number when filename has no edition prefix', () => {
+      const result = fileWatcher.parseFilename('2026-2-24.md');
+
+      expect(result).toBeDefined();
+      expect(result.number).toBe(0);
+      expect(result.month).toBe(2);
+      expect(result.day).toBe(24);
+    });
   });
 
   describe('scanDirectory', () => {
