@@ -246,6 +246,13 @@ render_mode: legacy
 | `[sum:摘要]: #` | 章节/文章 | 摘要内容 |
 | `[think:思考]: #` | 章节/文章 | 思考点评 |
 
+### 块级标签
+
+| 标签 | 描述 |
+|------|------|
+| `<weather>...</weather>` | 天气块，显示多日天气 |
+| `<data>...</data>` | 数据块，显示统计数字 |
+
 ### 数据块
 
 ```markdown
@@ -254,6 +261,27 @@ render_mode: legacy
 <num>100万</num><str>Token上下文</str>
 </data>
 ```
+
+### 天气块
+
+```markdown
+<!-- 带城市名称（5段格式） -->
+<weather>
+<day>周一|东莞|☀️|晴|26°C/17°C</day>
+<day>周二|深圳|🌧️|雨|24°C/15°C</day>
+</weather>
+
+<!-- 不带城市名称（4段格式，居中显示） -->
+<weather center>
+<day>周一|☀️|晴|26°C/17°C</day>
+<day>周二|⛅|多云|25°C/16°C</day>
+</weather>
+```
+
+**格式说明：**
+- 带城市：`<day>星期|城市|emoji|天气|温度</day>`
+- 不带城市：`<day>星期|emoji|天气|温度</day>`
+- 可选属性：`center` - 居中显示
 
 ## API 接口
 
