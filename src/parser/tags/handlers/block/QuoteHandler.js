@@ -1,6 +1,6 @@
 /**
- * 引用�?> 标签处理�?
- * 处理 Markdown 引用�?
+ * > 引用块 标签处理器
+ * 处理 Markdown 引用块
  */
 
 const BaseHandler = require('../../BaseHandler');
@@ -15,37 +15,38 @@ class QuoteHandler extends BaseHandler {
     return 'block';
   }
 
-  parse(content, context) {
+  parseDocument(content, context) {
     const results = [];
     const quoteBlocks = [];
+    this.syntax.lastIndex = 0;
     let match;
     let lastMatchEnd = -1;
     let currentQuote = null;
 
-    // 只处理第一�?section 之前的内�?
-    // 检�?section 开始：[section]: 标记或第二个 # 标题
+    // 只处理第一个section 之前的内容
+    // 检查section 开始：[section]: 标记或第二个 # 标题
     const lines = content.split('\n');
     let headEndIndex = -1;
     let foundFirstHeading = false;
-    
+
     for (let i = 0; i < lines.length; i++) {
-      // 检�?[section]: 标记
+      // 检查[section]: 标记
       if (lines[i].startsWith('[section]:')) {
         headEndIndex = i;
         break;
       }
-      // 检�?# 标题
+      // 检查# 标题
       if (lines[i].startsWith('# ')) {
         if (!foundFirstHeading) {
           foundFirstHeading = true;
         } else {
-          // 第二�?# 标题，section 开�?
+          // 第二个# 标题，section 开始
           headEndIndex = i;
           break;
         }
       }
     }
-    
+
     const headContent = headEndIndex === -1 ? content : lines.slice(0, headEndIndex).join('\n');
 
     while ((match = this.syntax.exec(headContent)) !== null) {
@@ -82,7 +83,7 @@ class QuoteHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 只清理第一�?section 之前的引用块
+    // 只清理第一个section 之前的引用块
     const sectionIndex = content.indexOf('[section]:');
     if (sectionIndex === -1) {
       return content.replace(this.syntax, '');

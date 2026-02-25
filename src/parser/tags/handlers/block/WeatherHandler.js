@@ -1,6 +1,6 @@
 /**
- * <weather>...</weather> 标签处理�?
- * 天气数据�?
+ * <weather>...</weather> 标签处理器
+ * 天气数据块
  */
 
 const BaseHandler = require('../../BaseHandler');
@@ -15,7 +15,7 @@ class WeatherHandler extends BaseHandler {
     return 'block';
   }
 
-  parse(content, context) {
+  parseDocument(content, context) {
     const results = [];
     let match;
     this.syntax.lastIndex = 0;

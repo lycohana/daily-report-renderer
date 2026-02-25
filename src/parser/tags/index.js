@@ -80,7 +80,11 @@ class TagRegistry {
       
       // 先处理 marker handlers（建立状态）- 使用单行内容
       for (const handler of markerHandlers) {
-        handler.parse(line, context);
+        if (typeof handler.parseLine === 'function') {
+          handler.parseLine(line, context, i);
+        } else {
+          handler.parse(line, context);
+        }
       }
       
       // 检测 # 标题并通知 collector（在 marker 之后，这样 articles 状态已经设置）
@@ -92,13 +96,21 @@ class TagRegistry {
       
       // 然后处理 inline handlers（收集元数据）- 使用单行内容
       for (const handler of inlineHandlers) {
-        handler.parse(line, context);
+        if (typeof handler.parseLine === 'function') {
+          handler.parseLine(line, context, i);
+        } else {
+          handler.parse(line, context);
+        }
       }
     }
 
     // 处理 block 标签（不需要逐行）
     for (const handler of blockHandlers) {
-      handler.parse(content, context);
+      if (typeof handler.parseDocument === 'function') {
+        handler.parseDocument(content, context);
+      } else {
+        handler.parse(content, context);
+      }
     }
 
     // 清理内容（只清理 inline 和 marker）

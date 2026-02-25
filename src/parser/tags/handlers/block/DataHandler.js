@@ -1,6 +1,6 @@
 /**
- * <data>...</data> 标签处理�?
- * 数据�?
+ * <data>...</data> 标签处理器
+ * 数据块
  */
 
 const BaseHandler = require('../../BaseHandler');
@@ -15,7 +15,7 @@ class DataHandler extends BaseHandler {
     return 'block';
   }
 
-  parse(content, context) {
+  parseDocument(content, context) {
     const results = [];
     let match;
     this.syntax.lastIndex = 0;

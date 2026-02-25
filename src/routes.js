@@ -6,59 +6,10 @@ const cache = require('./cache');
 const markdownParser = require('./markdownParser');
 const fileWatcher = require('./fileWatcher');
 const { processBlocks } = require('./parser/blocks');
+const { applySecurityMode, resolveRenderMode } = require('./parser/security');
+const { parseFormField } = require('./utils/formParser');
 
 const router = express.Router();
-
-/**
- * 解析form字段值
- * 支持格式：
- * - form: 来源名称|来源URL
- * - form: 来源名称 - 来源URL
- * - form: 来源名称 (无URL)
- * - form: 来源1|URL1,来源2|URL2,来源3 (多个来源，用逗号分隔)
- *
- * @param {string} formValue - form字段的值
- * @returns {Array} - [{ name: string, url: string|null }, ...]
- */
-function parseFormField(formValue) {
-  if (!formValue) {
-    return [];
-  }
-
-  // 先用逗号分割多个来源
-  const sources = formValue.split(',');
-
-  return sources.map(source => {
-    const sourceStr = source.trim();
-    if (!sourceStr) {
-      return { name: null, url: null };
-    }
-
-    // 尝试使用 | 分隔
-    if (sourceStr.includes('|')) {
-      const parts = sourceStr.split('|');
-      return {
-        name: parts[0].trim(),
-        url: parts[1] ? parts[1].trim() : null
-      };
-    }
-
-    // 尝试使用 - 分隔
-    if (sourceStr.includes(' - ')) {
-      const parts = sourceStr.split(' - ');
-      return {
-        name: parts[0].trim(),
-        url: parts[1] ? parts[1].trim() : null
-      };
-    }
-
-    // 只有名称，没有URL
-    return {
-      name: sourceStr.trim(),
-      url: null
-    };
-  }).filter(source => source.name !== null);
-}
 
 router.get('/', async (req, res) => {
   try {
@@ -84,6 +35,7 @@ router.get('/', async (req, res) => {
     const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, latest.basename);
     const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, latest.basename);
     const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
+    const renderMode = resolveRenderMode(parsed.frontMatter);
     
     const reportData = {
       title,
@@ -103,8 +55,8 @@ router.get('/', async (req, res) => {
           return '';
         }
         let html = markdownParser.md.render(content);
-        // 后处理：统一处理 <data> 和 <weather> 块
         html = processBlocks(html);
+        html = applySecurityMode(html, renderMode);
         return html;
       }
     };
@@ -208,6 +160,7 @@ router.get('/report/:filename', async (req, res) => {
     const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, sanitizedFilename);
     const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, sanitizedFilename);
     const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
+    const renderMode = resolveRenderMode(parsed.frontMatter);
     
     const reportData = {
       title,
@@ -225,8 +178,8 @@ router.get('/report/:filename', async (req, res) => {
           return '';
         }
         let html = markdownParser.md.render(content);
-        // 后处理：统一处理 <data> 和 <weather> 块
         html = processBlocks(html);
+        html = applySecurityMode(html, renderMode);
         return html;
       }
     };

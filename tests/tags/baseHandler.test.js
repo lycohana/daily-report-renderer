@@ -12,7 +12,6 @@ describe('BaseHandler', () => {
   });
 
   test('should have correct name', () => {
-    // BaseHandler �?name 是从类名派生的，去掉 "Handler" 后缀并转小写
     expect(handler.name).toBe('base');
   });
 
@@ -20,13 +19,20 @@ describe('BaseHandler', () => {
     expect(handler.getName()).toBe('base');
   });
 
-  test('should not be instantiated directly', () => {
-    // BaseHandler 应该被继承使�?
+  test('should be instantiable for inheritance compatibility', () => {
     expect(handler).toBeInstanceOf(BaseHandler);
   });
 
-  test('should throw error when parse() is not implemented', () => {
-    expect(() => handler.parse('')).toThrow('parse() must be implemented by subclass');
+  test('should return empty array in default parse()', () => {
+    expect(handler.parse('')).toEqual([]);
+  });
+
+  test('should return null for default parseLine()', () => {
+    expect(handler.parseLine('test', {})).toBeNull();
+  });
+
+  test('should return empty array for default parseDocument()', () => {
+    expect(handler.parseDocument('test', {})).toEqual([]);
   });
 
   test('should return content unchanged in clean()', () => {

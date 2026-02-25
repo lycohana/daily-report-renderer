@@ -36,47 +36,6 @@ function createMarkdownIt() {
     slugify: (s) => s.trim().toLowerCase().replace(/[^\w\u4e00-\u9fa5]+/g, '-')
   });
 
-  // 添加自定义规则渲染<data>块
-  // 使用markdown-it的渲染后处理
-  md.renderer.rules.paragraph_open = function(tokens, idx, options, env, self) {
-    // 检查下一个token是否是包含data的inline
-    const nextToken = tokens[idx + 1];
-    if (nextToken && nextToken.type === 'inline') {
-      const content = nextToken.content;
-      if (content.includes('<data>')) {
-        // 替换data块
-        const newContent = content.replace(/&lt;data&gt;([\s\S]*?)&lt;\/data&gt;/g, (match, dataContent) => {
-          // 解码HTML实体
-          dataContent = dataContent.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
-          const items = [];
-          const numStrRegex = /<num>([^<]+)<\/num>\s*<str>([^<]+)<\/str>/g;
-          let numMatch;
-          while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-            items.push({ value: numMatch[1], label: numMatch[2] });
-          }
-          
-          if (items.length > 0) {
-            const itemsHtml = items.map(item => 
-              `<div class="front-stat">
-                <div class="front-stat-value">${item.value}</div>
-                <div class="front-stat-label">${item.label}</div>
-              </div>`
-            ).join('');
-            
-            return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
-          }
-          return '';
-        });
-        nextToken.content = newContent;
-      }
-    }
-    return self.renderToken(tokens, idx, options);
-  };
-  
-  md.renderer.rules.paragraph_close = function(tokens, idx, options, env, self) {
-    return self.renderToken(tokens, idx, options);
-  };
-
   return md;
 }
 

@@ -200,6 +200,7 @@ date: 2026-2-23
 weather: 东莞 · 晴 26°C/17°C
 read_time: 约 10 分钟
 form: AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog
+render_mode: legacy
 ---
 [head]: #
 [from:https://example.com]: #
@@ -218,6 +219,17 @@ form: AIBase|https://www.aibase.com,GitHub Blog|https://github.com/blog
 [sum:总结]: #
 [think:思考]: #
 ```
+
+### 渲染安全模式
+
+通过 Front Matter 字段 `render_mode` 控制渲染安全策略：
+
+| 值 | 行为 |
+|----|------|
+| `legacy` | 保持历史渲染行为，不额外做 HTML 净化 |
+| `safe` | 在渲染后进行白名单净化，移除危险 HTML |
+
+默认值：`legacy`。当值缺失或非法时自动回退到 `legacy`。
 
 ### 自定义标签
 

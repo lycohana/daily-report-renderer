@@ -581,4 +581,31 @@ title: Test & More <special>
       expect(result.frontMatter.title).toBe('Test & More <special>');
     });
   });
+
+  describe('Render Mode', () => {
+    test('should default to legacy mode', () => {
+      const markdown = `---
+title: Test
+---
+# Hello
+<script>alert(1)</script>`;
+      const result = markdownParser.parseMarkdown(markdown);
+      expect(result.renderMode).toBe('legacy');
+      expect(result.htmlContent).toContain('<script>');
+    });
+
+    test('should sanitize html in safe mode', () => {
+      const markdown = `---
+title: Test
+render_mode: safe
+---
+# Hello
+<script>alert(1)</script>
+<a href="https://example.com" target="_blank">x</a>`;
+      const result = markdownParser.parseMarkdown(markdown);
+      expect(result.renderMode).toBe('safe');
+      expect(result.htmlContent).not.toContain('<script>');
+      expect(result.htmlContent).toContain('rel="noopener noreferrer"');
+    });
+  });
 });

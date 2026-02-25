@@ -47,9 +47,76 @@ const { createMarkdownIt } = require('./parser/config');
 const { parseFrontMatter } = require('./parser/frontMatter');
 const { extractCustomTags } = require('./parser/customTags');
 const { extractTitleFromFrontMatter, extractEditionFromFrontMatter } = require('./parser/utils');
-const { processDataBlocks } = require('./parser/blocks');
+const { processBlocks } = require('./parser/blocks');
+const { applySecurityMode, resolveRenderMode } = require('./parser/security');
 
 const md = createMarkdownIt();
+
+function trimContent(content) {
+  return content.replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+}
+
+function extractQuoteBlocksAndContent(rawContent) {
+  const quoteBlockRegex = /^> (.+)$/gm;
+  const quoteBlocks = [];
+  let lastMatchEnd = -1;
+  let currentQuote = null;
+  let match;
+
+  while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
+    if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
+      if (currentQuote) {
+        quoteBlocks.push(currentQuote.trim());
+        currentQuote = null;
+      }
+    }
+    if (!currentQuote) {
+      currentQuote = match[1];
+    } else {
+      currentQuote += '\n' + match[1];
+    }
+    lastMatchEnd = match.index + match[0].length;
+  }
+
+  if (currentQuote) {
+    quoteBlocks.push(currentQuote.trim());
+  }
+
+  return {
+    quoteBlocks,
+    content: trimContent(rawContent.replace(quoteBlockRegex, ''))
+  };
+}
+
+function finalizeArticle(currentArticle, articleContent, currentSection) {
+  if (!currentArticle || !currentSection) {
+    return null;
+  }
+
+  const rawContent = articleContent.join('\n');
+  const parsed = extractQuoteBlocksAndContent(rawContent);
+  currentArticle.quoteBlocks = parsed.quoteBlocks;
+  currentArticle.content = parsed.content;
+  currentSection.articles.push(currentArticle);
+  return null;
+}
+
+function sanitizeStructuredMeta(sections, renderMode) {
+  if (renderMode !== 'safe') {
+    return sections;
+  }
+
+  return sections.map(section => ({
+    ...section,
+    summary: section.summary ? applySecurityMode(section.summary, renderMode) : section.summary,
+    think: section.think ? applySecurityMode(section.think, renderMode) : section.think,
+    articles: (section.articles || []).map(article => ({
+      ...article,
+      summary: article.summary ? applySecurityMode(article.summary, renderMode) : article.summary,
+      think: article.think ? applySecurityMode(article.think, renderMode) : article.think
+    }))
+  }));
+}
 
 /**
  * 解析Markdown内容
@@ -137,7 +204,7 @@ function parseMarkdown(content) {
       
       // 保存 headSection 内容
       if (headSection) {
-        headSection.content = headlineContent.join('\n').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+        headSection.content = trimContent(headlineContent.join('\n'));
       }
       
       // 从 customTags 中获取 section 元数据
@@ -169,35 +236,7 @@ function parseMarkdown(content) {
     if (line.startsWith('# ') && inSection && currentSectionMetaIndex < sectionMetas.length) {
       // 保存当前文章
       if (currentSection && currentArticle) {
-        const rawContent = articleContent.join('\n');
-        const quoteBlockRegex = /^> (.+)$/gm;
-        const articleQuoteBlocks = [];
-        let lastMatchEnd = -1;
-        let currentQuote = null;
-        let match;
-        
-        while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
-          if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
-            if (currentQuote) {
-              articleQuoteBlocks.push(currentQuote.trim());
-              currentQuote = null;
-            }
-          }
-          if (!currentQuote) {
-            currentQuote = match[1];
-          } else {
-            currentQuote += '\n' + match[1];
-          }
-          lastMatchEnd = match.index + match[0].length;
-        }
-        if (currentQuote) {
-          articleQuoteBlocks.push(currentQuote.trim());
-        }
-        
-        currentArticle.quoteBlocks = articleQuoteBlocks;
-        currentArticle.content = rawContent.replace(quoteBlockRegex, '').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
-        currentSection.articles.push(currentArticle);
-        currentArticle = null;
+        currentArticle = finalizeArticle(currentArticle, articleContent, currentSection);
       }
       
       // 保存当前 section
@@ -242,35 +281,7 @@ function parseMarkdown(content) {
     // 章节标题: 在 inSection 状态下，或者没有 [head]: 标记时（允许第一个 # 标题作为章节）
     if (line.startsWith('# ') && (!isFirstHash || !hasHeadMarker) && inSection) {
       if (currentSection && currentArticle) {
-        const rawContent = articleContent.join('\n');
-        const quoteBlockRegex = /^> (.+)$/gm;
-        const articleQuoteBlocks = [];
-        let lastMatchEnd = -1;
-        let currentQuote = null;
-        let match;
-        
-        while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
-          if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
-            if (currentQuote) {
-              articleQuoteBlocks.push(currentQuote.trim());
-              currentQuote = null;
-            }
-          }
-          if (!currentQuote) {
-            currentQuote = match[1];
-          } else {
-            currentQuote += '\n' + match[1];
-          }
-          lastMatchEnd = match.index + match[0].length;
-        }
-        if (currentQuote) {
-          articleQuoteBlocks.push(currentQuote.trim());
-        }
-        
-        currentArticle.quoteBlocks = articleQuoteBlocks;
-        currentArticle.content = rawContent.replace(quoteBlockRegex, '').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
-        currentSection.articles.push(currentArticle);
-        currentArticle = null;
+        currentArticle = finalizeArticle(currentArticle, articleContent, currentSection);
       }
       if (currentSection) {
         currentSection.tags = currentSectionTags;
@@ -327,35 +338,7 @@ function parseMarkdown(content) {
     
     if (line.startsWith('## ') && currentSection) {
       if (currentArticle) {
-        const rawContent = articleContent.join('\n');
-        const quoteBlockRegex = /^> (.+)$/gm;
-        const articleQuoteBlocks = [];
-        let lastMatchEnd = -1;
-        let currentQuote = null;
-        let match;
-        
-        while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
-          if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
-            if (currentQuote) {
-              articleQuoteBlocks.push(currentQuote.trim());
-              currentQuote = null;
-            }
-          }
-          if (!currentQuote) {
-            currentQuote = match[1];
-          } else {
-            currentQuote += '\n' + match[1];
-          }
-          lastMatchEnd = match.index + match[0].length;
-        }
-        if (currentQuote) {
-          articleQuoteBlocks.push(currentQuote.trim());
-        }
-        
-        currentArticle.quoteBlocks = articleQuoteBlocks;
-        currentArticle.content = rawContent.replace(quoteBlockRegex, '').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
-        currentSection.articles.push(currentArticle);
-        currentArticle = null;
+        currentArticle = finalizeArticle(currentArticle, articleContent, currentSection);
       }
       
       articleContent = [];
@@ -479,42 +462,12 @@ function parseMarkdown(content) {
   if (headSection) {
     // 过滤掉引用块，避免重复渲染（引用块在 front-detail 中单独渲染）
     const rawContent = headlineContent.join('\n');
-    const quoteBlockRegex = /^> (.+)$/gm;
-    const contentWithoutQuotes = rawContent.replace(quoteBlockRegex, '');
-    headSection.content = contentWithoutQuotes.replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
+    const parsedHeadline = extractQuoteBlocksAndContent(rawContent);
+    headSection.content = parsedHeadline.content;
   }
   
   if (currentArticle) {
-    const rawContent = articleContent.join('\n');
-    const quoteBlockRegex = /^> (.+)$/gm;
-    const articleQuoteBlocks = [];
-    let lastMatchEnd = -1;
-    let currentQuote = null;
-    let match;
-    
-    while ((match = quoteBlockRegex.exec(rawContent)) !== null) {
-      if (lastMatchEnd !== -1 && match.index - lastMatchEnd > 1) {
-        if (currentQuote) {
-          articleQuoteBlocks.push(currentQuote.trim());
-          currentQuote = null;
-        }
-      }
-      if (!currentQuote) {
-        currentQuote = match[1];
-      } else {
-        currentQuote += '\n' + match[1];
-      }
-      lastMatchEnd = match.index + match[0].length;
-    }
-    if (currentQuote) {
-      articleQuoteBlocks.push(currentQuote.trim());
-    }
-    
-    currentArticle.quoteBlocks = articleQuoteBlocks;
-    currentArticle.content = rawContent.replace(quoteBlockRegex, '').replace(/^[\s\r\n]+/, '').replace(/[\s\r\n]+$/, '');
-    if (currentSection) {
-      currentSection.articles.push(currentArticle);
-    }
+    currentArticle = finalizeArticle(currentArticle, articleContent, currentSection);
   }
   
   if (currentSection) {
@@ -522,16 +475,18 @@ function parseMarkdown(content) {
     sections.push(currentSection);
   }
   
+  const renderMode = resolveRenderMode(frontMatter);
+  const sanitizedSections = sanitizeStructuredMeta(sections, renderMode);
   let htmlContent = md.render(cleanContent);
+  htmlContent = processBlocks(htmlContent);
+  htmlContent = applySecurityMode(htmlContent, renderMode);
   
-  // 后处理：将<data>块替换为HTML
-  htmlContent = processDataBlocks(htmlContent);
-  
-  // 单独渲染headSection的content并应用后处理
+  // 单独渲染headSection的content并应用后处理与安全策略
   let headSectionHtml = '';
   if (headSection && headSection.content) {
     headSectionHtml = md.render(headSection.content);
-    headSectionHtml = processDataBlocks(headSectionHtml);
+    headSectionHtml = processBlocks(headSectionHtml);
+    headSectionHtml = applySecurityMode(headSectionHtml, renderMode);
   }
   
   return {
@@ -539,8 +494,9 @@ function parseMarkdown(content) {
     customTags,
     htmlContent,
     headSectionHtml,
-    sections,
-    headSection
+    sections: sanitizedSections,
+    headSection,
+    renderMode
   };
 }
 

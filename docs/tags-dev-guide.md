@@ -193,6 +193,13 @@ src/parser/tags/
 
 ## 新增标签处理器
 
+### 处理器接口约定（当前）
+
+- `inline` / `marker` 处理器：实现 `parseLine(line, context, lineIndex)`。
+- `block` 处理器：实现 `parseDocument(content, context)`。
+- `BaseHandler.parse()` 为兼容入口，会根据 `getType()` 自动分发到对应方法。
+- 清理逻辑仍通过 `clean(content)` 完成。
+
 ### 步骤 1：创建处理器文件
 
 在 `src/parser/tags/handlers/` 目录下创建新文件，例如 `AuthorHandler.js`：

@@ -57,4 +57,20 @@ describe('TagRegistry', () => {
     tagRegistry.clearStyleCache();
     expect(tagRegistry.styleCache).toBeNull();
   });
+
+  test('should use parseLine for inline handlers instead of parse', () => {
+    const handler = tagRegistry.getHandler('tag');
+    expect(handler).toBeDefined();
+
+    const parseSpy = jest.spyOn(handler, 'parse');
+    const parseLineSpy = jest.spyOn(handler, 'parseLine');
+
+    tagRegistry.extractTags('[tag:test]: #\ncontent');
+
+    expect(parseLineSpy).toHaveBeenCalled();
+    expect(parseSpy).not.toHaveBeenCalled();
+
+    parseSpy.mockRestore();
+    parseLineSpy.mockRestore();
+  });
 });

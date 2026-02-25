@@ -27,22 +27,34 @@ function parseFrontMatter(content) {
   }
 
   const frontMatterStr = match[1];
-  const frontMatter = {};
-  
-  frontMatterStr.split(/\r?\n/).forEach(line => {
-    const colonIndex = line.indexOf(':');
-    if (colonIndex > 0) {
-      const key = line.substring(0, colonIndex).trim();
-      let value = line.substring(colonIndex + 1).trim();
-      
-      if ((value.startsWith('"') && value.endsWith('"')) || 
-          (value.startsWith('\'') && value.endsWith('\''))) {
-        value = value.slice(1, -1);
-      }
-      
-      frontMatter[key] = value;
+  let frontMatter = {};
+
+  try {
+    const parsed = yaml.load(frontMatterStr, { schema: yaml.FAILSAFE_SCHEMA });
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      frontMatter = parsed;
     }
-  });
+  } catch (error) {
+    console.error('Failed to parse front matter with js-yaml, fallback to legacy parser:', error.message);
+    frontMatter = {};
+
+    frontMatterStr.split(/\r?\n/).forEach(line => {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex > 0) {
+        const key = line.substring(0, colonIndex).trim();
+        let value = line.substring(colonIndex + 1).trim();
+
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith('\'') && value.endsWith('\''))
+        ) {
+          value = value.slice(1, -1);
+        }
+
+        frontMatter[key] = value;
+      }
+    });
+  }
 
   return {
     frontMatter,
@@ -53,3 +65,4 @@ function parseFrontMatter(content) {
 module.exports = {
   parseFrontMatter
 };
+const yaml = require('js-yaml');

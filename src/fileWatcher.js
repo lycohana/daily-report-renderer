@@ -30,19 +30,27 @@ function parseFilename(filename) {
 async function scanDirectory(dirPath) {
   try {
     const files = await fs.readdir(dirPath);
-    const reports = [];
-    
-    for (const file of files) {
-      if (file.endsWith('.md') && !file.startsWith('.')) {
-        const parsed = parseFilename(file);
-        if (parsed) {
-          const stat = await fs.stat(path.join(dirPath, file));
-          parsed.mtime = stat.mtime;
-          parsed.size = stat.size;
-          reports.push(parsed);
-        }
-      }
-    }
+    const reportCandidates = files
+      .filter(file => file.endsWith('.md') && !file.startsWith('.'))
+      .map(file => parseFilename(file))
+      .filter(Boolean);
+
+    const reports = (
+      await Promise.all(
+        reportCandidates.map(async parsed => {
+          try {
+            const stat = await fs.stat(path.join(dirPath, parsed.filename));
+            return {
+              ...parsed,
+              mtime: stat.mtime,
+              size: stat.size
+            };
+          } catch {
+            return null;
+          }
+        })
+      )
+    ).filter(Boolean);
     
     return reports.sort((a, b) => b.sortKey.localeCompare(a.sortKey));
   } catch (error) {
