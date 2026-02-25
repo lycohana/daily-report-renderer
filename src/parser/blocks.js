@@ -88,6 +88,8 @@ function renderWeatherBlock(weatherContent, isCenter = false) {
   
   if (items.length > 0) {
     const centerClass = isCenter ? ' weather-center' : '';
+    // 当卡片数量少于 5 个时，使用 weather-fill 类让卡片自适应填满容器
+    const fillClass = items.length < 5 ? ' weather-fill' : '';
     const itemsHtml = items.map(item => {
       const cityHtml = item.city
         ? `<div class="weather-city">${item.city}</div>`
@@ -101,7 +103,7 @@ function renderWeatherBlock(weatherContent, isCenter = false) {
       </div>`;
     }).join('');
     
-    return `<div class="weather-grid${centerClass}" data-inline="true">${itemsHtml}</div>`;
+    return `<div class="weather-grid${centerClass}${fillClass}" data-inline="true">${itemsHtml}</div>`;
   }
   return '';
 }

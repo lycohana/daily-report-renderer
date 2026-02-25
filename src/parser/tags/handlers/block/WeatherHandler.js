@@ -45,13 +45,13 @@ class WeatherHandler extends BaseHandler {
 
   getStyles() {
     return `
-.weather-grid{display:flex;gap:12px;flex-wrap:nowrap;overflow-x:auto;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0;-webkit-overflow-scrolling:touch}
-.weather-grid::-webkit-scrollbar{height:6px}
-.weather-grid::-webkit-scrollbar-track{background:transparent}
-.weather-grid::-webkit-scrollbar-thumb{background:#90caf9;border-radius:3px}
+.weather-grid{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0}
 .weather-grid.weather-center{justify-content:center}
-.weather-item{flex:0 0 auto;min-width:110px;max-width:130px;background:#fff;border-radius:12px;padding:14px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .2s ease}
+.weather-grid.weather-fill{justify-content:flex-start}
+.weather-grid.weather-fill .weather-item{flex:1 1 0;min-width:100px;max-width:none}
+.weather-item{flex:0 0 auto;min-width:110px;max-width:130px;background:#fff;border-radius:12px;padding:14px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .2s ease,box-shadow .2s ease}
 .weather-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.weather-grid.weather-fill .weather-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
 .weather-icon{font-size:2rem;margin-bottom:4px}
 .weather-city{font-weight:600;color:#1565c0;font-size:.9rem}
 .weather-city-placeholder{visibility:hidden}
