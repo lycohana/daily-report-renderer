@@ -39,6 +39,11 @@ function invalidateReport(filename) {
   cache.del(`report_${filename}`);
 }
 
+function invalidateListCaches() {
+  cache.del(REPORT_LIST_KEY);
+  cache.del(LATEST_REPORT_KEY);
+}
+
 function invalidateAll() {
   cache.flushAll();
 }
@@ -49,6 +54,8 @@ function getStats() {
 
 module.exports = {
   cache,
+  REPORT_LIST_KEY,
+  LATEST_REPORT_KEY,
   getReportList,
   setReportList,
   getLatestReport,
@@ -56,6 +63,7 @@ module.exports = {
   getReport,
   setReport,
   invalidateReport,
+  invalidateListCaches,
   invalidateAll,
   getStats
 };

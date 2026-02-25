@@ -11,6 +11,43 @@ const { parseFormField } = require('./utils/formParser');
 
 const router = express.Router();
 
+/**
+ * 构建报告数据对象
+ * @param {Object} parsed - markdownParser.parseMarkdown() 返回的解析结果
+ * @param {Object} fileInfo - 文件信息对象 { basename, filename, date }
+ * @param {string} renderMode - 渲染模式
+ * @returns {Object} 报告数据对象
+ */
+function buildReportData(parsed, fileInfo, renderMode) {
+  const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, fileInfo.basename);
+  const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, fileInfo.basename);
+  const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
+
+  return {
+    title,
+    edition,
+    frontMatter: parsed.frontMatter,
+    customTags: parsed.customTags,
+    htmlContent: parsed.htmlContent,
+    headSectionHtml: parsed.headSectionHtml,
+    sections: parsed.sections,
+    headSection: parsed.headSection,
+    date: fileInfo.date,
+    filename: fileInfo.basename,
+    formInfo,
+    md: markdownParser.md,
+    renderMarkdown: (content) => {
+      if (!content) {
+        return '';
+      }
+      let html = markdownParser.md.render(content);
+      html = processBlocks(html);
+      html = applySecurityMode(html, renderMode);
+      return html;
+    }
+  };
+}
+
 router.get('/', async (req, res) => {
   try {
     const latestReport = cache.getLatestReport();
@@ -32,35 +69,10 @@ router.get('/', async (req, res) => {
     const latest = reports[0];
     const content = await fs.readFile(path.join(config.watchDir, latest.filename), 'utf-8');
     const parsed = markdownParser.parseMarkdown(content);
-    const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, latest.basename);
-    const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, latest.basename);
-    const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
     const renderMode = resolveRenderMode(parsed.frontMatter);
-    
-    const reportData = {
-      title,
-      edition,
-      frontMatter: parsed.frontMatter,
-      customTags: parsed.customTags,
-      htmlContent: parsed.htmlContent,
-      headSectionHtml: parsed.headSectionHtml,
-      sections: parsed.sections,
-      headSection: parsed.headSection,
-      date: latest.date,
-      filename: latest.basename,
-      formInfo,
-      md: markdownParser.md,
-      renderMarkdown: (content) => {
-        if (!content) {
-          return '';
-        }
-        let html = markdownParser.md.render(content);
-        html = processBlocks(html);
-        html = applySecurityMode(html, renderMode);
-        return html;
-      }
-    };
-    
+    const fileInfo = { basename: latest.basename, filename: latest.filename, date: latest.date };
+    const reportData = buildReportData(parsed, fileInfo, renderMode);
+
     cache.setLatestReport(reportData);
     
     res.render('index', reportData);
@@ -156,34 +168,10 @@ router.get('/report/:filename', async (req, res) => {
     
     const content = await fs.readFile(mdFilePath, 'utf-8');
     const parsed = markdownParser.parseMarkdown(content);
-    
-    const title = markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, sanitizedFilename);
-    const edition = markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, sanitizedFilename);
-    const formInfo = parseFormField(parsed.frontMatter && parsed.frontMatter.form);
     const renderMode = resolveRenderMode(parsed.frontMatter);
-    
-    const reportData = {
-      title,
-      edition,
-      frontMatter: parsed.frontMatter,
-      customTags: parsed.customTags,
-      headSection: parsed.headSection,
-      headSectionHtml: parsed.headSectionHtml,
-      htmlContent: parsed.htmlContent,
-      sections: parsed.sections,
-      filename: sanitizedFilename,
-      formInfo,
-      renderMarkdown: (content) => {
-        if (!content) {
-          return '';
-        }
-        let html = markdownParser.md.render(content);
-        html = processBlocks(html);
-        html = applySecurityMode(html, renderMode);
-        return html;
-      }
-    };
-    
+    const fileInfo = { basename: sanitizedFilename, filename: `${sanitizedFilename}.md`, date: null };
+    const reportData = buildReportData(parsed, fileInfo, renderMode);
+
     cache.setReport(sanitizedFilename, reportData);
     
     res.render('index', { ...reportData, md: markdownParser.md });

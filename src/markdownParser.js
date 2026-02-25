@@ -228,7 +228,7 @@ function parseMarkdown(content) {
       };
       
       currentSectionMetaIndex++;
-      // afterSectionHeader = true; // Removed: unused variable
+
       continue;
     }
     
@@ -272,7 +272,7 @@ function parseMarkdown(content) {
       };
       
       currentSectionMetaIndex++;
-      // afterSectionHeader = true; // Removed: unused variable
+
       articleContent = [];
       articleIndex = 0;
       continue;
@@ -332,7 +332,7 @@ function parseMarkdown(content) {
         }
       }
       
-      // afterSectionHeader = true; // Removed: unused variable
+
       continue;
     }
     
@@ -379,43 +379,7 @@ function parseMarkdown(content) {
       articleIndex++;
       continue;
     }
-    
-    if (line.trim().startsWith('[from:') && currentSection && !currentArticle) {
-      const fromMatch = line.match(/\[from:([^\]]+)\]/);
-      if (fromMatch) {
-        if (!currentSection.pendingArticleMeta) {
-          currentSection.pendingArticleMeta = {};
-        }
-        currentSection.pendingArticleMeta.from = fromMatch[1];
-      }
-      continue;
-    }
-    
-    if (line.trim().startsWith('[fromstr:') && currentSection && !currentArticle) {
-      const fromStrMatch = line.match(/\[fromstr:([^\]]+)\]/);
-      if (fromStrMatch) {
-        if (!currentSection.pendingArticleMeta) {
-          currentSection.pendingArticleMeta = {};
-        }
-        currentSection.pendingArticleMeta.fromStr = fromStrMatch[1];
-      }
-      continue;
-    }
-    
-    if (line.trim().startsWith('[tag:') && currentSection && !currentArticle) {
-      const tagMatch = line.match(/\[tag:([^\]]+)\]/);
-      if (tagMatch) {
-        if (!currentSection.pendingArticleMeta) {
-          currentSection.pendingArticleMeta = { tags: [] };
-        }
-        if (!currentSection.pendingArticleMeta.tags) {
-          currentSection.pendingArticleMeta.tags = [];
-        }
-        currentSection.pendingArticleMeta.tags.push(tagMatch[1]);
-      }
-      continue;
-    }
-    
+
     if (line.trim().startsWith('[sum:') && currentSection && !currentSection.summary) {
       const sumMatch = line.match(/\[sum:([^\]]+)\]/);
       if (sumMatch) {

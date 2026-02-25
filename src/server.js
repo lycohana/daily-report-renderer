@@ -40,7 +40,10 @@ async function initializeApp() {
   
   fileWatcher.onFileChange(async (eventType, parsed) => {
     console.log(`File ${eventType}: ${parsed.filename}`);
-    cache.invalidateAll();
+    // 精确清除对应文件的缓存
+    cache.invalidateReport(parsed.basename);
+    // 清除列表缓存（列表顺序可能变化）
+    cache.invalidateListCaches();
   });
 }
 
