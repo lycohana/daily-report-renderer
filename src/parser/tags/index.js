@@ -146,7 +146,12 @@ class TagRegistry {
     }
     // block HTML 作为原始 HTML 存储，不通过 markdown 渲染
     const blockHtmlContent = blockHtmlReplacements.join('\n');
-    const cleanContent = cleanLines.join('\n');
+    let cleanContent = cleanLines.join('\n');
+    
+    // 清理 block 标签
+    for (const handler of blockHandlers) {
+      cleanContent = handler.clean(cleanContent);
+    }
 
     // 获取元数据
     const meta = collector.getResult();

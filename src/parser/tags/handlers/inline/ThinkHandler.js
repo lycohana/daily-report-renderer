@@ -45,7 +45,7 @@ class ThinkHandler extends BaseHandler {
     return `
 .thought-box{margin-top:18px;padding:16px;background:linear-gradient(135deg,#fef9e7,#fffcf5);border:1px solid #f0e6c8;border-radius:8px}
 .thought-title{font-size:.8rem;font-weight:600;color:var(--accent-gold);margin-bottom:8px;display:flex;align-items:center;gap:5px}
-.thought-title::before{content:'💡';font-size:.7rem}
+.thought-title::before{content:'☁️';font-size:.7rem}
 .thought-content{font-size:.88rem;color:var(--text-dark);font-style:italic;line-height:1.6}
     `.trim();
   }

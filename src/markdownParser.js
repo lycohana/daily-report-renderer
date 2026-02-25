@@ -446,6 +446,8 @@ function renderHtmlContent(state, renderMode) {
   const processBlockTags = (html) => {
     const sumRegex = /<sum>([\s\S]*?)<\/sum>/g;
     const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+    const notesRegex = /<notes>([\s\S]*?)<\/notes>/g;
+    const noteRegex = /<note>([\s\S]*?)<\/note>/g;
     
     // 替换 <sum> 标签为 HTML
     html = html.replace(sumRegex, (match, p1) => {
@@ -459,11 +461,41 @@ function renderHtmlContent(state, renderMode) {
       return `<div class="thought-box"><div class="thought-title">思考</div><div class="thought-content">${value}</div></div>`;
     });
     
+    // 替换 <notes> 标签为 HTML
+    html = html.replace(notesRegex, (match, p1) => {
+      const notesContent = p1.trim();
+      const notes = [];
+      let noteMatch;
+      // 重置正则的 lastIndex
+      noteRegex.lastIndex = 0;
+      while ((noteMatch = noteRegex.exec(notesContent)) !== null) {
+        const noteValue = noteMatch[1].trim();
+        if (noteValue) {
+          notes.push(noteValue);
+        }
+      }
+      
+      if (notes.length === 0) {
+        return '';
+      }
+      
+      let notesHtml = '<div class="notes-section"><div class="notes-title">随笔笔记</div><div class="notes-grid">';
+      notes.forEach((note) => {
+        // 对每个 note 内容进行 Markdown 渲染
+        const renderedNote = md.render(note).trim();
+        // 移除包裹的 <p> 标签（如果只有一个段落）
+        const cleanNote = renderedNote.replace(/^<p>(.*?)<\/p>$/, '$1');
+        notesHtml += `<div class="note-card"><div class="note-card-content">${cleanNote}</div></div>`;
+      });
+      notesHtml += '</div></div>';
+      return notesHtml;
+    });
+    
     return html;
   };
   
   let htmlContent = md.render(state.customTags.cleanContent);
-  htmlContent = processBlocks(htmlContent);
+  htmlContent = processBlocks(htmlContent, md);
   htmlContent = applySecurityMode(htmlContent, renderMode);
   
   // 注入 block 标签的原始 HTML（如 <sum> 和 <think>）
