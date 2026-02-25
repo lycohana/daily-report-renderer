@@ -40,9 +40,30 @@ function buildReportData(parsed, fileInfo, renderMode) {
       if (!content) {
         return '';
       }
-      let html = markdownParser.md.render(content);
+      
+      // 先处理 block 标签（如 <sum> 和 <think>）
+      const sumRegex = /<sum>([\s\S]*?)<\/sum>/g;
+      const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+      
+      let html = content;
+      
+      // 替换 <sum> 标签为 HTML
+      html = html.replace(sumRegex, (match, p1) => {
+        const value = p1.trim();
+        return `<div class="analysis-box"><div class="analysis-title">总结</div><div class="analysis-content">${value}</div></div>`;
+      });
+      
+      // 替换 <think> 标签为 HTML
+      html = html.replace(thinkRegex, (match, p1) => {
+        const value = p1.trim();
+        return `<div class="thought-box"><div class="thought-title">思考</div><div class="thought-content">${value}</div></div>`;
+      });
+      
+      // 渲染 markdown
+      html = markdownParser.md.render(html);
       html = processBlocks(html);
       html = applySecurityMode(html, renderMode);
+      
       return html;
     }
   };
@@ -61,7 +82,7 @@ router.get('/', async (req, res) => {
     if (reports.length === 0) {
       return res.status(404).render('error', {
         title: '暂无日报',
-        message: '暂无生成的日报内容，请等待或手动添加Markdown文件。',
+        message: '暂无生成的日报内容，请等待或手动添加 Markdown 文件。',
         code: 'NO_REPORTS'
       });
     }
@@ -161,7 +182,7 @@ router.get('/report/:filename', async (req, res) => {
     } catch {
       return res.status(404).render('error', {
         title: '文件未找到',
-        message: `找不到指定的日报文件: ${sanitizedFilename}.md`,
+        message: `找不到指定的日报文件：${sanitizedFilename}.md`,
         code: 'FILE_NOT_FOUND'
       });
     }

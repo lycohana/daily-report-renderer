@@ -271,6 +271,22 @@
           </div>
           <% }); %>
         <% } %>
+        
+        <!-- 章节总结（渲染到末尾） -->
+        <% if (section.summary) { %>
+        <div class="analysis-box">
+          <div class="analysis-title">总结</div>
+          <div class="analysis-content"><%= section.summary %></div>
+        </div>
+        <% } %>
+        
+        <!-- 章节思考（渲染到末尾） -->
+        <% if (section.think) { %>
+        <div class="thought-box">
+          <div class="thought-title">思考</div>
+          <div class="thought-content"><%= section.think %></div>
+        </div>
+        <% } %>
       </div>
       <% }); %>
     </div>

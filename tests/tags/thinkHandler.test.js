@@ -29,7 +29,23 @@ describe('ThinkHandler', () => {
     const result = handler.parseLine(line, context, 0);
     expect(result).toBeTruthy();
     expect(result.value).toBe('This is a thought');
-    expect(result.html).toContain('thought-box');
+    // 行内标签不再返回 html，由视图层在章节末尾渲染
+    expect(result.html).toBeUndefined();
+  });
+
+  test('should collect think in section context', () => {
+    collector.onMarker('section');
+    const line = '[think:Section thought]: #';
+    handler.parseLine(line, context, 0);
+    const meta = collector.getResult();
+    expect(meta.sectionArticleMeta[0].thinks).toContain('Section thought');
+  });
+
+  test('should collect think in headline context', () => {
+    const line = '[think:Headline thought]: #';
+    handler.parseLine(line, context, 0);
+    const meta = collector.getResult();
+    expect(meta.headlineThink).toBe('Headline thought');
   });
 
   test('should clean think syntax', () => {

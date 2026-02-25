@@ -29,7 +29,23 @@ describe('SumHandler', () => {
     const result = handler.parseLine(line, context, 0);
     expect(result).toBeTruthy();
     expect(result.value).toBe('This is a summary');
-    expect(result.html).toContain('analysis-box');
+    // 行内标签不再返回 html，由视图层在章节末尾渲染
+    expect(result.html).toBeUndefined();
+  });
+
+  test('should collect sum in section context', () => {
+    collector.onMarker('section');
+    const line = '[sum:Section summary]: #';
+    handler.parseLine(line, context, 0);
+    const meta = collector.getResult();
+    expect(meta.sectionArticleMeta[0].sum).toBe('Section summary');
+  });
+
+  test('should collect sum in headline context', () => {
+    const line = '[sum:Headline summary]: #';
+    handler.parseLine(line, context, 0);
+    const meta = collector.getResult();
+    expect(meta.headlineSum).toBe('Headline summary');
   });
 
   test('should clean sum syntax', () => {

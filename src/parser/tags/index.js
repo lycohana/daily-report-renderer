@@ -113,9 +113,17 @@ class TagRegistry {
     }
 
     // 处理 block 标签（不需要逐行）
+    const blockHtmlReplacements = [];
     for (const handler of blockHandlers) {
       if (typeof handler.parseDocument === 'function') {
-        handler.parseDocument(content, context);
+        const results = handler.parseDocument(content, context);
+        if (results && Array.isArray(results)) {
+          for (const result of results) {
+            if (result && result.html) {
+              blockHtmlReplacements.push(result.html);
+            }
+          }
+        }
       } else {
         handler.parse(content, context);
       }
@@ -125,7 +133,7 @@ class TagRegistry {
     const cleanLines = [];
     for (let i = 0; i < lines.length; i++) {
       if (htmlReplacements.has(i)) {
-        // 使用 HTML 替换
+        // 使用 inline handler 的 HTML 替换
         cleanLines.push(htmlReplacements.get(i));
       } else {
         // 正常清理
@@ -136,6 +144,8 @@ class TagRegistry {
         cleanLines.push(line);
       }
     }
+    // block HTML 作为原始 HTML 存储，不通过 markdown 渲染
+    const blockHtmlContent = blockHtmlReplacements.join('\n');
     const cleanContent = cleanLines.join('\n');
 
     // 获取元数据
@@ -143,6 +153,11 @@ class TagRegistry {
 
     // 构建返回结果
     const tags = this._buildTagsResult(meta);
+
+    // 将 block HTML 添加到 tags 中，供后续直接注入
+    if (blockHtmlContent) {
+      tags.blockHtml = blockHtmlContent;
+    }
 
     return { tags, cleanContent };
   }

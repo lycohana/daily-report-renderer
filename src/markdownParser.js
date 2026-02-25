@@ -442,9 +442,34 @@ function sanitizeStructuredMeta(sections, renderMode) {
 // ============================================
 
 function renderHtmlContent(state, renderMode) {
+  // 处理 block 标签的辅助函数
+  const processBlockTags = (html) => {
+    const sumRegex = /<sum>([\s\S]*?)<\/sum>/g;
+    const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+    
+    // 替换 <sum> 标签为 HTML
+    html = html.replace(sumRegex, (match, p1) => {
+      const value = p1.trim();
+      return `<div class="analysis-box"><div class="analysis-title">总结</div><div class="analysis-content">${value}</div></div>`;
+    });
+    
+    // 替换 <think> 标签为 HTML
+    html = html.replace(thinkRegex, (match, p1) => {
+      const value = p1.trim();
+      return `<div class="thought-box"><div class="thought-title">思考</div><div class="thought-content">${value}</div></div>`;
+    });
+    
+    return html;
+  };
+  
   let htmlContent = md.render(state.customTags.cleanContent);
   htmlContent = processBlocks(htmlContent);
   htmlContent = applySecurityMode(htmlContent, renderMode);
+  
+  // 注入 block 标签的原始 HTML（如 <sum> 和 <think>）
+  if (state.customTags.blockHtml) {
+    htmlContent += '\n' + state.customTags.blockHtml;
+  }
   
   // 单独渲染 headSection 的 content
   let headSectionHtml = '';
@@ -452,6 +477,8 @@ function renderHtmlContent(state, renderMode) {
     headSectionHtml = md.render(state.headSection.content);
     headSectionHtml = processBlocks(headSectionHtml);
     headSectionHtml = applySecurityMode(headSectionHtml, renderMode);
+    // 处理 headSection 中的 block 标签
+    headSectionHtml = processBlockTags(headSectionHtml);
   }
   
   return { htmlContent, headSectionHtml };
