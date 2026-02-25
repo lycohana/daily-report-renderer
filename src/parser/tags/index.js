@@ -75,6 +75,8 @@ class TagRegistry {
 
     // 逐行处理：先处理 marker 建立状态，然后处理 inline tags
     const lines = content.split('\n');
+    const htmlReplacements = new Map(); // 存储行号到 HTML 的映射
+    
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       
@@ -94,12 +96,18 @@ class TagRegistry {
         collector.onHeading(level);
       }
       
-      // 然后处理 inline handlers（收集元数据）- 使用单行内容
+      // 然后处理 inline handlers（收集元数据 + 生成 HTML）
       for (const handler of inlineHandlers) {
+        let result;
         if (typeof handler.parseLine === 'function') {
-          handler.parseLine(line, context, i);
+          result = handler.parseLine(line, context, i);
         } else {
-          handler.parse(line, context);
+          result = handler.parse(line, context);
+        }
+        
+        // 如果处理器返回 HTML，存储替换（行号 -> HTML）
+        if (result && result.html) {
+          htmlReplacements.set(i, result.html);
         }
       }
     }
@@ -113,11 +121,22 @@ class TagRegistry {
       }
     }
 
-    // 清理内容（只清理 inline 和 marker）
-    let cleanContent = content;
-    for (const handler of [...inlineHandlers, ...markerHandlers]) {
-      cleanContent = handler.clean(cleanContent);
+    // 构建 cleanContent，同时应用 HTML 替换
+    const cleanLines = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (htmlReplacements.has(i)) {
+        // 使用 HTML 替换
+        cleanLines.push(htmlReplacements.get(i));
+      } else {
+        // 正常清理
+        let line = lines[i];
+        for (const handler of [...inlineHandlers, ...markerHandlers]) {
+          line = handler.clean(line);
+        }
+        cleanLines.push(line);
+      }
     }
+    const cleanContent = cleanLines.join('\n');
 
     // 获取元数据
     const meta = collector.getResult();
@@ -191,6 +210,14 @@ class TagRegistry {
 
     if (meta.headFrom) {
       tags.headFrom = meta.headFrom;
+    }
+
+    if (meta.headlineSum) {
+      tags.headlineSum = meta.headlineSum;
+    }
+
+    if (meta.headlineThink) {
+      tags.headlineThink = meta.headlineThink;
     }
 
     if (meta.dataBlocks) {

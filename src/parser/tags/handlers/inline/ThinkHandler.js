@@ -1,6 +1,7 @@
 /**
  * [think:xxx] 标签处理器
  * 用于标记观点
+ * 作为 block 类型处理器，直接在内容中渲染 HTML
  */
 
 const BaseHandler = require('../../BaseHandler');
@@ -21,18 +22,24 @@ class ThinkHandler extends BaseHandler {
       return null;
     }
 
+    const value = match[1];
+    
+    // 仍然收集元数据用于向后兼容
     if (context?.collector) {
-      context.collector.collect('think', match[1], context.state);
+      context.collector.collect('think', value, context.state);
     }
 
+    // 返回 HTML 用于直接渲染
     return {
       name: this.name,
-      value: match[1],
-      lineIndex
+      value: value,
+      lineIndex,
+      html: `<div class="thought-box"><div class="thought-title">思考</div><div class="thought-content">${value}</div></div>`
     };
   }
 
   clean(content) {
+    // 完全移除标签，因为已经在 parseLine 中转换为 HTML
     return content.replace(new RegExp(this.syntax.source, 'gm'), '');
   }
 

@@ -207,7 +207,9 @@ function handleHeadline(state, line) {
     tags: state.customTags.headlineTags || [],
     dataBlocks: state.customTags.dataBlocks?.headline || null,
     quoteBlocks: state.customTags.quoteBlocks || null,
-    from: state.customTags.headFrom || state.customTags.from || null
+    from: state.customTags.headFrom || state.customTags.from || null,
+    sum: state.customTags.headlineSum || null,
+    think: state.customTags.headlineThink || null
   };
   state.isFirstHash = false;
 }

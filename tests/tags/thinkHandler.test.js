@@ -25,10 +25,11 @@ describe('ThinkHandler', () => {
   });
 
   test('should parse think syntax', () => {
-    const content = '[think:This is a thought]: #';
-    const results = handler.parse(content, context);
-    expect(results).toHaveLength(1);
-    expect(results[0].value).toBe('This is a thought');
+    const line = '[think:This is a thought]: #';
+    const result = handler.parseLine(line, context, 0);
+    expect(result).toBeTruthy();
+    expect(result.value).toBe('This is a thought');
+    expect(result.html).toContain('thought-box');
   });
 
   test('should clean think syntax', () => {
@@ -44,8 +45,8 @@ describe('ThinkHandler', () => {
   });
 
   test('should not match invalid syntax', () => {
-    const content = '[think:This is a thought]';
-    const results = handler.parse(content, context);
-    expect(results).toHaveLength(0);
+    const line = '[think:This is a thought]';
+    const result = handler.parseLine(line, context, 0);
+    expect(result).toBeNull();
   });
 });

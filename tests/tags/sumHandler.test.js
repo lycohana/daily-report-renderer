@@ -25,10 +25,11 @@ describe('SumHandler', () => {
   });
 
   test('should parse sum syntax', () => {
-    const content = '[sum:This is a summary]: #';
-    const results = handler.parse(content, context);
-    expect(results).toHaveLength(1);
-    expect(results[0].value).toBe('This is a summary');
+    const line = '[sum:This is a summary]: #';
+    const result = handler.parseLine(line, context, 0);
+    expect(result).toBeTruthy();
+    expect(result.value).toBe('This is a summary');
+    expect(result.html).toContain('analysis-box');
   });
 
   test('should clean sum syntax', () => {
@@ -38,8 +39,8 @@ describe('SumHandler', () => {
   });
 
   test('should not match invalid syntax', () => {
-    const content = '[sum:This is a summary]';
-    const results = handler.parse(content, context);
-    expect(results).toHaveLength(0);
+    const line = '[sum:This is a summary]';
+    const result = handler.parseLine(line, context, 0);
+    expect(result).toBeNull();
   });
 });

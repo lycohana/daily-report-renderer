@@ -41,6 +41,10 @@ class MetaCollector {
 
     // weather 数据
     this.weather = [];
+    
+    // headline 级别摘要
+    this.headlineSum = null;
+    this.headlineThink = null;
   }
 
   /**
@@ -208,22 +212,34 @@ class MetaCollector {
       break;
 
     case 'sum':
-      // 摘要可以出现在任何地方
-      if (inArticles && this.currentArticleMeta) {
+      // 摘要可以出现在任何地方（headline、section、article）
+      // 注意：inHeadline 在遇到第一个#标题后就会变为 false，所以使用 !inSection && !inArticles 来判断 headline 区域
+      if (!inSection && !inArticles) {
+        // headline 级别（包括#标题之后的区域）
+        this.headlineSum = value;
+      } else if (inArticles && this.currentArticleMeta && this._articleMetaHasContent()) {
+        // 文章级别（只有当有实际内容时）
         this.currentArticleMeta.sum = value;
       } else {
+        // section 级别（默认）
         this.currentMeta.sum = value;
       }
       break;
 
     case 'think':
-      // 观点可以出现在任何地方
-      if (inArticles && this.currentArticleMeta) {
+      // 观点可以出现在任何地方（headline、section、article）
+      // 注意：inHeadline 在遇到第一个#标题后就会变为 false，所以使用 !inSection && !inArticles 来判断 headline 区域
+      if (!inSection && !inArticles) {
+        // headline 级别（包括#标题之后的区域）
+        this.headlineThink = value;
+      } else if (inArticles && this.currentArticleMeta && this._articleMetaHasContent()) {
+        // 文章级别（只有当有实际内容时）
         if (!this.currentArticleMeta.thinks) {
           this.currentArticleMeta.thinks = [];
         }
         this.currentArticleMeta.thinks.push(value);
       } else {
+        // section 级别（默认）
         if (!this.currentMeta.thinks) {
           this.currentMeta.thinks = [];
         }
@@ -303,6 +319,8 @@ class MetaCollector {
       sectionArticleMeta: this.sectionArticleMeta,
       headlineTags: this.headlineTags.length > 0 ? this.headlineTags : undefined,
       headFrom: this.headFrom,
+      headlineSum: this.headlineSum,
+      headlineThink: this.headlineThink,
       hasHeadMarker: this.state.hasHeadMarker,
       dataBlocks: {
         headline: this.headlineDataBlocks,
@@ -327,6 +345,20 @@ class MetaCollector {
   }
 
   /**
+   * 判断当前文章元数据是否有实际内容（from/fromStr/tags）
+   * 用于区分"文章头部标签区域"和"文章内容区域/章节尾部"
+   * @private
+   */
+  _articleMetaHasContent() {
+    if (!this.currentArticleMeta) return false;
+    return !!(
+      this.currentArticleMeta.from ||
+      this.currentArticleMeta.fromStr ||
+      this.currentArticleMeta.tags.length > 0
+    );
+  }
+
+  /**
    * 保存当前文章元数据
    * @private
    */
@@ -335,7 +367,9 @@ class MetaCollector {
       this.currentArticleMeta &&
       (this.currentArticleMeta.from ||
         this.currentArticleMeta.fromStr ||
-        this.currentArticleMeta.tags.length > 0)
+        this.currentArticleMeta.tags.length > 0 ||
+        this.currentArticleMeta.sum ||
+        (this.currentArticleMeta.thinks && this.currentArticleMeta.thinks.length > 0))
     ) {
       // 找到当前 section 的元数据（最后一个 push 的）
       const currentSectionMeta = this.sectionArticleMeta[this.sectionArticleMeta.length - 1];

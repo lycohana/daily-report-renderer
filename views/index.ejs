@@ -195,6 +195,7 @@
         <% }); %>
       </div>
       <% } %>
+      
     </div>
     <% } %>
     
@@ -266,38 +267,13 @@
             <% if (article.from) { %>
             <div class="article-source">来源：<a href="<%= article.from %>" target="_blank"><%= article.fromStr || article.from %></a></div>
             <% } %>
+
           </div>
           <% }); %>
-        <% } %>
-        
-        <% if (section.summary) { %>
-        <div class="analysis-box">
-          <div class="analysis-title">总结</div>
-          <div class="analysis-content"><%- section.summary %></div>
-        </div>
         <% } %>
       </div>
       <% }); %>
     </div>
-    
-    <% 
-    let hasGlobalThink = false;
-    sectionsList.forEach(section => {
-      if (section.think) hasGlobalThink = true;
-    });
-    %>
-    <% if (hasGlobalThink) { %>
-    <div class="thought-box">
-      <div class="thought-title">思考</div>
-      <div class="thought-content">
-        <% sectionsList.forEach(section => { %>
-          <% if (section.think) { %>
-          <p><%- section.think %></p>
-          <% } %>
-        <% }); %>
-      </div>
-    </div>
-    <% } %>
 
     <footer class="footer">
       <% if (formInfo && formInfo.length > 0) { %>
