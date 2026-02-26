@@ -74,22 +74,12 @@
     </style>
     <%- stylesHtml || '' %>
     <style>
-    @media(max-width:768px){.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}.progress-percent{top:8px;right:8px;font-size:.65rem;padding:2px 6px}.progress-container{height:3px}.container{max-width:100%;overflow-x:hidden}}
+    @media(max-width:768px){.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}.container{max-width:100%;overflow-x:hidden}}
     @media print{body{background:#fff;padding:0}.container{box-shadow:none}.section{break-inside:avoid}}
-    
-    /* 阅读进度条 */
-    .progress-container{position:fixed;top:0;left:0;width:100%;height:4px;z-index:10000;background:transparent}
-    .progress-bar{height:100%;background:linear-gradient(90deg,var(--accent-red),var(--accent-blue));width:0%;transition:width .1s ease}
-    .progress-percent{position:fixed;top:6px;right:12px;font-size:.7rem;font-weight:600;color:var(--accent-blue);background:#fff;padding:2px 8px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10001;opacity:0;transition:opacity .3s}
-    .progress-percent.show{opacity:1}
   </style>
 </head>
 <body>
-  <!-- 阅读进度条 -->
-  <div class="progress-container">
-    <div class="progress-bar" id="progressBar"></div>
-  </div>
-  <div class="progress-percent" id="progressPercent">0%</div>
+  <%- include('partials/progress') %>
   
   <div class="container">
     <header class="masthead">
@@ -292,38 +282,5 @@
       <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
     </footer>
   </div>
-  
-  <script>
-    // 阅读进度条功能
-    function updateProgress() {
-      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
-      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-      const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
-      
-      // 更新进度条宽度
-      const progressBar = document.getElementById('progressBar');
-      if (progressBar) {
-        progressBar.style.width = scrolled + '%';
-      }
-      
-      // 更新百分比显示
-      const progressPercent = document.getElementById('progressPercent');
-      if (progressPercent) {
-        progressPercent.textContent = Math.round(scrolled) + '%';
-        // 当进度大于 0 时显示百分比
-        if (scrolled > 0) {
-          progressPercent.classList.add('show');
-        } else {
-          progressPercent.classList.remove('show');
-        }
-      }
-    }
-    
-    // 监听滚动事件
-    window.addEventListener('scroll', updateProgress, { passive: true });
-    
-    // 页面加载时初始化
-    document.addEventListener('DOMContentLoaded', updateProgress);
-  </script>
 </body>
 </html>
