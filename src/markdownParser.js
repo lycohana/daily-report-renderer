@@ -275,7 +275,8 @@ function startNewSection(state, line) {
   state.articleContent = [];
   state.articleIndex = 0;
 
-  const sectionMeta = state.sectionMetas[state.currentSectionMetaIndex];
+  // 尽力关联 sectionMetas，不存在时使用空元数据对象
+  const sectionMeta = state.sectionMetas[state.currentSectionMetaIndex] || {};
   state.currentSection = createSectionNode(line.substring(2).trim(), sectionMeta);
   state.currentSectionMetaIndex++;
 
@@ -388,7 +389,8 @@ function parseLine(state, line) {
   }
 
   // 3. 检测后续的 # 标题作为新章节开始
-  if (line.startsWith('# ') && state.inSection && state.currentSectionMetaIndex < state.sectionMetas.length) {
+  // 章节边界由 Markdown 标题语义驱动，sectionMetas 仅用于关联元数据（不存在时使用空元数据对象）
+  if (line.startsWith('# ') && state.inSection) {
     startNewSection(state, line);
     return true;
   }
