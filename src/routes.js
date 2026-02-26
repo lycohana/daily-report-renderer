@@ -8,6 +8,7 @@ const fileWatcher = require('./fileWatcher');
 const { processBlocks } = require('./parser/blocks');
 const { applySecurityMode, resolveRenderMode } = require('./parser/security');
 const { parseFormField } = require('./utils/formParser');
+const tagsIndex = require('./parser/tags/index');
 
 const router = express.Router();
 
@@ -59,7 +60,7 @@ router.get('/', async (req, res) => {
     const latestReport = cache.getLatestReport();
     
     if (latestReport) {
-      return res.render('index', { ...latestReport, md: markdownParser.md });
+      return res.render('index', { ...latestReport, md: markdownParser.md, stylesHtml: tagsIndex.getStylesHTML() });
     }
     
     const reports = await fileWatcher.scanDirectory(config.watchDir);
@@ -80,8 +81,8 @@ router.get('/', async (req, res) => {
     const reportData = buildReportData(parsed, fileInfo, renderMode);
 
     cache.setLatestReport(reportData);
-    
-    res.render('index', reportData);
+
+    res.render('index', { ...reportData, stylesHtml: tagsIndex.getStylesHTML() });
   } catch (error) {
     console.error('Error loading index:', error);
     res.status(500).render('error', {
@@ -159,7 +160,7 @@ router.get('/report/:filename', async (req, res) => {
     const cachedReport = cache.getReport(sanitizedFilename);
     
     if (cachedReport) {
-      return res.render('index', { ...cachedReport, md: markdownParser.md });
+      return res.render('index', { ...cachedReport, md: markdownParser.md, stylesHtml: tagsIndex.getStylesHTML() });
     }
     
     try {
@@ -179,8 +180,8 @@ router.get('/report/:filename', async (req, res) => {
     const reportData = buildReportData(parsed, fileInfo, renderMode);
 
     cache.setReport(sanitizedFilename, reportData);
-    
-    res.render('index', { ...reportData, md: markdownParser.md });
+
+    res.render('index', { ...reportData, md: markdownParser.md, stylesHtml: tagsIndex.getStylesHTML() });
   } catch (error) {
     console.error('Error loading report:', error);
     res.status(500).render('error', {

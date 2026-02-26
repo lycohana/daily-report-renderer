@@ -601,7 +601,11 @@ function parseMarkdown(content) {
   // 8. 渲染 HTML
   const { htmlContent, headSectionHtml } = renderHtmlContent(state, renderMode);
 
-  // 9. 返回结果
+  // 9. 收集样式
+  const tagsIndex = require('./parser/tags/index');
+  const stylesHtml = tagsIndex.getStylesHTML();
+
+  // 10. 返回结果
   return {
     frontMatter,
     customTags,
@@ -609,7 +613,8 @@ function parseMarkdown(content) {
     headSectionHtml,
     sections: sanitizedSections,
     headSection: state.headSection,
-    renderMode
+    renderMode,
+    stylesHtml
   };
 }
 

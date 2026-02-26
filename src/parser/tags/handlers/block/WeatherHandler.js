@@ -45,7 +45,7 @@ class WeatherHandler extends BaseHandler {
 
   getStyles() {
     return `
-.weather-grid{display:flex;gap:12px;flex-wrap:wrap;justify-content:flex-start;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0}
+.weather-grid{display:flex;gap:12px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0;scrollbar-width:thin;scrollbar-color:#90caf9 #e3f2fd}
 .weather-grid.weather-center{justify-content:center}
 .weather-grid.weather-fill{justify-content:flex-start}
 .weather-grid.weather-fill .weather-item{flex:1 1 0;min-width:100px;max-width:none}
@@ -58,6 +58,10 @@ class WeatherHandler extends BaseHandler {
 .weather-condition{color:#757575;font-size:.85rem}
 .weather-temp{color:#424242;font-size:.85rem;margin-top:4px}
 .weather-day{font-size:.75rem;color:#9e9e9e;margin-top:8px;padding-top:8px;border-top:1px dashed #e0e0e0}
+.weather-grid::-webkit-scrollbar{height:6px}
+.weather-grid::-webkit-scrollbar-track{background:#e3f2fd;border-radius:3px}
+.weather-grid::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#90caf9,#64b5f6);border-radius:3px;transition:background .2s ease}
+.weather-grid::-webkit-scrollbar-thumb:hover{background:linear-gradient(90deg,#64b5f6,#42a5f5)}
     `.trim();
   }
 
