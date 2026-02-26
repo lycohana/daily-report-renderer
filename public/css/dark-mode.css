@@ -1,7 +1,7 @@
 html[data-theme='dark']{
   --ink-black:#f3f3f3;
   --paper-bg:#111418;
-  --accent-red:#ff6b7f;
+  --accent-red:#d62d43;
   --accent-blue:#8fb8ff;
   --accent-gold:#e3c56b;
   --accent-green:#6bbf8f;
@@ -45,6 +45,11 @@ html[data-theme='dark'] .toc-item{
 html[data-theme='dark'] .article-title a,
 html[data-theme='dark'] .front-headline a{
   color:var(--ink-black)
+}
+
+html[data-theme='dark'] .article-title a:hover,
+html[data-theme='dark'] .front-headline a:hover{
+  color:var(--accent-red)
 }
 
 html[data-theme='dark'] .theme-toggle{
