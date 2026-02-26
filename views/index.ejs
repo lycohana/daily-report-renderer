@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <%- stylesHtml || '' %>
   <style>
     :root{--ink-black:#1a1a1a;--paper-bg:#f5f2eb;--accent-red:#c41e3a;--accent-blue:#1e3a5f;--accent-gold:#b8860b;--accent-green:#2d5a27;--text-dark:#2c2c2c;--text-muted:#666;--border-color:#d4d0c8}
     *{margin:0;padding:0;box-sizing:border-box}
@@ -24,10 +25,6 @@
     .front-headline a{color:inherit;text-decoration:none;transition:color .3s}
     .front-headline a:hover{color:var(--accent-red)}
     .front-summary{font-size:1.1rem;color:var(--text-muted);margin-bottom:20px;line-height:1.7}
-    .front-detail{font-size:.95rem;color:var(--text-dark);line-height:1.8;margin-bottom:20px;padding:24px;background:#fff;border-radius:12px;border-left:4px solid var(--accent-red);box-shadow:0 2px 12px rgba(0,0,0,.06)}
-    .front-detail p{margin-bottom:16px;padding-bottom:16px;border-bottom:1px dashed #eee}
-    .front-detail p:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
-    .front-detail strong{color:var(--accent-blue)}
     .front-tags{display:flex;gap:8px;flex-wrap:wrap}
     .toc{padding:28px 40px;background:#faf9f7;border-bottom:2px solid var(--border-color)}
     .toc-title{font-family:'Noto Serif SC',serif;font-size:1rem;font-weight:700;color:var(--ink-black);margin-bottom:16px;display:flex;align-items:center;gap:8px}
@@ -72,7 +69,6 @@
     .loading-spinner{display:inline-block;width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--accent-red);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
     @keyframes spin{to{transform:rotate(360deg)}}
     </style>
-    <%- stylesHtml || '' %>
     <style>
     @media(max-width:768px){.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}.container{max-width:100%;overflow-x:hidden}}
     @media print{body{background:#fff;padding:0}.container{box-shadow:none}.section{break-inside:avoid}}

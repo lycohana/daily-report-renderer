@@ -95,7 +95,10 @@ class QuoteHandler extends BaseHandler {
 
   getStyles() {
     return `
-.front-detail{margin-top:28px;padding:20px;background:#f8f9fa;border-left:4px solid var(--accent-blue);border-radius:0 8px 8px 0}
+.front-detail{font-size:.95rem;color:var(--text-dark);line-height:1.8;margin-bottom:20px;padding:24px;background:#fff;border-radius:12px;border-left:4px solid var(--accent-red);box-shadow:0 2px 12px rgba(0,0,0,.06)}
+.front-detail p{margin-bottom:16px;padding-bottom:16px;border-bottom:1px dashed #eee}
+.front-detail p:last-child{margin-bottom:0;padding-bottom:0;border-bottom:none}
+.front-detail strong{color:var(--accent-blue)}
 .front-detail blockquote{margin:0;padding:0 16px;border-left:3px solid #ddd;font-style:italic}
     `.trim();
   }
