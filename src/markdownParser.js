@@ -502,16 +502,10 @@ function renderHtmlContent(state, renderMode) {
     // 替换 <notes> 标签为 HTML
     html = html.replace(notesRegex, (match, p1) => {
       const notesContent = p1.trim();
-      const notes = [];
-      let noteMatch;
-      // 重置正则的 lastIndex
-      noteRegex.lastIndex = 0;
-      while ((noteMatch = noteRegex.exec(notesContent)) !== null) {
-        const noteValue = noteMatch[1].trim();
-        if (noteValue) {
-          notes.push(noteValue);
-        }
-      }
+      // 使用 matchAll 避免 lastIndex 状态问题
+      const notes = [...notesContent.matchAll(/<note>([\s\S]*?)<\/note>/g)]
+        .map(m => m[1].trim())
+        .filter(Boolean);
 
       if (notes.length === 0) {
         return '';
