@@ -155,3 +155,32 @@
     margin-top:0
   }
 }
+
+/* iOS 设备检测 - 取消动画 */
+@supports (-webkit-touch-callout: none){
+  .back-top-toggle{
+    transition:none !important;
+    -webkit-transition:none !important
+  }
+
+  .back-top-toggle,
+  .back-top-toggle.is-visible{
+    -webkit-transform:none !important;
+    transform:none !important
+  }
+
+  .back-top-toggle{
+    margin-top:0;
+    display:none
+  }
+
+  .back-top-toggle.is-visible{
+    display:inline-flex
+  }
+
+  .toolbar,
+  .theme-toggle{
+    transition:none !important;
+    -webkit-transition:none !important
+  }
+}
