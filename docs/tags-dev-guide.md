@@ -63,7 +63,7 @@ class AuthorHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 注意：clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
+    // 注意：clean() 不删除标签，因为标签需要保留给结构解析与渲染模块处理
     return content;
   }
 
@@ -79,7 +79,7 @@ module.exports = AuthorHandler;
 
 然后在视图中使用：
 
-**注意**：新标签字段需要在 `MetaCollector.js` 的 `collect()` 方法中收集，并在 `getResult()` 方法中返回。如果需要在 `sections` 或 `articles` 中访问，还需要在 `markdownParser.js` 中映射字段。
+**注意**：新标签字段需要在 `MetaCollector.js` 的 `collect()` 方法中收集，并在 `getResult()` 方法中返回。如果需要在 `sections` 或 `articles` 中访问，还需要在 `src/parser/stateMachine.js` 中映射字段。
 
 ```ejs
 <!-- 在头版区域 -->
@@ -161,13 +161,16 @@ tags/index.js (extractTags)
     └── clean() → 清理标签语法（注意：不删除标签！）
     │
     ▼
-markdownParser.js
+parser/stateMachine.js
     │
     ├── parseLine() → 构建 sections/articles 结构
     │
-    ├── tryParseSum/tryParseThink → 解析行内 sum/think
+    └── tryParseSum/tryParseThink → 解析行内 sum/think
     │
-    └── processBlockTags → 渲染块级 sum/think
+    ▼
+parser/renderers/htmlRenderer.js
+    │
+    └── processBlocks() → 渲染 data/weather/sum/think/notes
     │
     ▼
 EJS 模板渲染
@@ -180,8 +183,8 @@ EJS 模板渲染
 所有 Handler 的 `clean()` 方法都**不删除标签**，返回原始 `content`。这是因为：
 
 1. `tags/index.js` 的 `extractTags` 负责收集元数据到 `MetaCollector`
-2. `markdownParser.js` 的 `tryParseSum`/`tryParseThink` 和 `processBlockTags` 需要访问原始标签进行渲染
-3. 如果 `clean()` 删除了标签，`markdownParser.js` 就无法处理
+2. `stateMachine.js` 的 `tryParseSum`/`tryParseThink` 与 `htmlRenderer.js` 的 `processBlocks()` 需要访问原始标签进行渲染
+3. 如果 `clean()` 删除了标签，结构解析与渲染阶段就无法处理
 
 ```javascript
 // 正确的 clean() 实现
@@ -396,7 +399,7 @@ class MyHandler extends BaseHandler {
 
 **作用域**: 任意位置
 
-**渲染位置**: 标签所在位置（由 `markdownParser.js` 的 `processBlockTags` 处理）
+**渲染位置**: 标签所在位置（由 `src/parser/renderers/htmlRenderer.js` 调用 `processBlocks()` 处理）
 
 **示例**:
 ```markdown
@@ -471,7 +474,7 @@ class AuthorHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 注意：不删除标签，因为标签需要保留给 markdownParser.js 处理
+    // 注意：不删除标签，因为标签需要保留给结构解析与渲染模块处理
     return content;
   }
 
@@ -525,12 +528,12 @@ return {
 };
 ```
 
-### 步骤 5：更新 markdownParser.js
+### 步骤 5：更新结构映射与净化模块
 
 如果新字段需要在 `sections` 或 `articles` 中访问：
 
-1. 在 `createSectionNode()` 或 `createArticleNode()` 中添加字段映射
-2. 在 `sanitizeStructuredMeta()` 中添加安全处理（如果需要）
+1. 在 `src/parser/stateMachine.js` 的 `createSectionNode()` 或 `createArticleNode()` 中添加字段映射
+2. 在 `src/parser/sanitizers.js` 的 `sanitizeStructuredMeta()` 中添加安全处理（如果需要）
 
 ---
 
@@ -661,7 +664,7 @@ describe('AuthorHandler', () => {
   });
 
   test('should clean without removing tags', () => {
-    // 注意：clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
+    // 注意：clean() 不删除标签，因为标签需要保留给结构解析与渲染模块处理
     const content = '[author:张三]: #\n其他内容';
     const cleaned = handler.clean(content);
     expect(cleaned).toBe(content);
