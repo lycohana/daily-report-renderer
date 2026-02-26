@@ -39,8 +39,8 @@ class SumBlockHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 不删除标签，保留原始 <sum> 标签让 processBlocks 在 HTML 渲染后处理
-    return content;
+    // 删除 <sum>...</sum> 标签，保留内容
+    return content.replace(this.syntax, '');
   }
 
   getStyles() {

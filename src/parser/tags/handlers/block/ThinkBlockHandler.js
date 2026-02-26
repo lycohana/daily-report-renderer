@@ -39,8 +39,8 @@ class ThinkBlockHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 不删除标签，保留原始 <think> 标签让 processBlocks 在 HTML 渲染后处理
-    return content;
+    // 删除 <think>...</think> 标签，保留内容
+    return content.replace(this.syntax, '');
   }
 
   getStyles() {
