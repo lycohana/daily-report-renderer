@@ -12,7 +12,7 @@
 - 🔄 **实时监控**: 使用 chokidar 监控文件变化，自动重新渲染
 - 💾 **缓存机制**: 内置内存缓存，提升响应速度
 - 🎨 **精美 UI**: 报纸风格设计，响应式布局
-- 🧪 **完整测试**: Jest 单元测试 + 集成测试
+- 🧪 **完整测试**: Jest 单元测试 + 集成测试（261 个测试）
 - ✅ **代码质量**: ESLint + Prettier + Commitlint
 
 ## 快速开始
@@ -48,42 +48,38 @@ npm start
 daily-report-renderer/
 ├── src/
 │   ├── server.js              # Express 服务器入口
-│   ├── routes.js             # 路由处理
-│   ├── config.js             # 配置文件
-│   ├── markdownParser.js     # Markdown 解析核心
-│   ├── fileWatcher.js        # 文件监控模块
-│   ├── cache.js              # 缓存管理
-│   └── parser/               # 解析器子模块
-│       ├── config.js         # markdown-it 配置
-│       ├── frontMatter.js    # Front Matter 解析
-│       ├── customTags.js     # 自定义标签提取（Facade）
-│       ├── utils.js          # 工具函数
-│       └── tags/             # 标签处理器模块
-│           ├── index.js              # 标签注册表
-│           ├── BaseHandler.js        # 基础处理器类
-│           ├── MetaCollector.js      # 元数据收集器
-│           └── handlers/             # 标签处理器
-│               ├── TagHandler.js     # [tag:] 标签
-│               ├── FromHandler.js    # [from:] 标签
-│               ├── SectionHandler.js # [section]: 标记
-│               └── ...               # 其他处理器
+│   ├── routes.js              # 路由处理
+│   ├── config.js              # 配置文件
+│   ├── markdownParser.js      # Markdown 解析核心
+│   ├── fileWatcher.js         # 文件监控模块
+│   ├── cache.js               # 缓存管理
+│   └── parser/                # 解析器子模块
+│       ├── config.js          # markdown-it 配置
+│       ├── frontMatter.js     # Front Matter 解析
+│       ├── blocks.js          # 块级标签处理
+│       ├── security.js        # 安全处理
+│       └── tags/              # 标签处理器模块
+│           ├── index.js       # 标签注册表（自动发现）
+│           ├── BaseHandler.js # 基础处理器类
+│           ├── MetaCollector.js # 元数据收集器
+│           └── handlers/      # 标签处理器
+│               ├── inline/    # 行内标签（tag, from, sum, think...）
+│               ├── marker/    # 标记标签（head, section, articles）
+│               └── block/     # 区块标签（data, weather, notes...）
 ├── views/                     # EJS 模板
 │   ├── index.ejs             # 日报详情页
 │   ├── list.ejs              # 日报列表页
 │   └── error.ejs             # 错误页
-├── tests/                    # 测试文件
+├── tests/                     # 测试文件
 │   ├── routes.test.js
 │   ├── markdownParser.test.js
 │   ├── cache.test.js
 │   ├── fileWatcher.test.js
-│   └── tags/                 # 标签处理器测试
-│       ├── TagHandler.test.js
-│       ├── FromHandler.test.js
-│       └── ...
-├── docs/                     # 文档
-│   └── tags-dev-guide.md     # 自定义标签开发指南
-├── package.json
-└── eslint.config.js
+│   └── tags/                  # 标签处理器测试
+├── docs/                      # 文档
+│   └── tags-dev-guide.md      # 自定义标签开发指南
+├── reports/                   # 日报文件目录
+└── package.json
 ```
 
 ### 架构图
@@ -161,9 +157,9 @@ markdownParser 解析
      tags/index.js (TagRegistry)
           │
           ├── handlers/ → 解析标签语法
-          │    ├── inline (tag, from, icon...)
+          │    ├── inline (tag, from, icon, sum, think...)
           │    ├── marker (head, section, articles)
-          │    └── block (data, quote, weather)
+          │    └── block (data, quote, weather, notes...)
           │
           └── MetaCollector → 收集元数据
                │
@@ -187,7 +183,7 @@ markdownParser 解析
 | PORT | 3000 | 服务端口 |
 | WATCH_DIR | ./reports | 监控目录 |
 | OUTPUT_DIR | ./output | 输出目录 |
-| CACHE_TIMEOUT | 300000 | 缓存超时(ms) |
+| CACHE_TIMEOUT | 300000 | 缓存超时 (ms) |
 
 ## Markdown 文件格式
 
@@ -233,6 +229,8 @@ render_mode: legacy
 
 ### 自定义标签
 
+#### 行内标签
+
 | 标签 | 作用域 | 描述 |
 |------|--------|------|
 | `[head]: #` | 文件顶部 | 标记头版头条开始 |
@@ -243,37 +241,61 @@ render_mode: legacy
 | `[fromstr:名称]: #` | 文章前 | 来源名称 |
 | `[intro:简介]: #` | 章节前 | 章节简介 |
 | `[icon:emoji]: #` | 章节前 | 章节图标 |
-| `[sum:摘要]: #` | 章节/文章 | 摘要内容 |
-| `[think:思考]: #` | 章节/文章 | 思考点评 |
+| `[sum:摘要]: #` | 章节/文章 | 摘要内容（渲染到章节/文章末尾） |
+| `[think:思考]: #` | 章节/文章 | 思考点评（渲染到章节/文章末尾） |
 
-### 块级标签
+#### 块级标签
 
 | 标签 | 描述 |
 |------|------|
 | `<weather>...</weather>` | 天气块，显示多日天气 |
 | `<data>...</data>` | 数据块，显示统计数字 |
-| `<sum>...</sum>` | 总结块，显示摘要总结 |
-| `<think>...</think>` | 思考块，显示思考点评 |
+| `<sum>...</sum>` | 总结块，原地渲染摘要 |
+| `<think>...</think>` | 思考块，原地渲染思考 |
 | `<notes>...</notes>` | 笔记块，包含多个 `<note>` 子标签，渲染在页面底部 |
+| `> 引用` | 引用块，显示引用内容 |
 
-### 总结块和思考块
+### 标签详解
 
-块级标签可在文章内容中直接使用：
+#### Sum 和 Think 标签
+
+系统支持两种形式的 sum/think 标签：
+
+**1. 行内标签** - 渲染到章节/文章末尾
+
+```markdown
+[section]: #
+# 章节标题
+[articles]: #
+## 文章
+文章内容...
+[sum:这是章节总结，会渲染在章节末尾]: #
+[think:这是章节思考，会渲染在章节末尾]: #
+```
+
+**2. 块级标签** - 原地渲染
 
 ```markdown
 ## 文章标题
 文章内容...
-<sum>这是文章的总结内容，会显示为带边框的总结框</sum>
-</think>这是思考内容，会显示为带边框的思考框</think>
+
+<sum>
+这是文章的总结内容，会显示为带边框的总结框
+可以跨多行
+</sum>
+
+<think>
+这是思考内容，会显示为带边框的思考框
+</think>
+
+更多文章内容...
 ```
 
 **渲染效果：**
 - `<sum>...</sum>` → 显示为蓝色左边框的总结框
 - `<think>...</think>` → 显示为金色边框的思考框（斜体文字）
 
-> **提示：** 也可以使用行内标签格式 `[sum:总结内容]` 和 `[think:思考内容]`，它们会被渲染到章节末尾。
-
-### 笔记块
+#### 笔记块
 
 ```markdown
 <notes>
@@ -292,25 +314,25 @@ render_mode: legacy
 
 笔记块会渲染在页面底部，显示为双列网格布局的卡片。
 
-### 数据块
+#### 数据块
 
 ```markdown
 <data>
 <num>98.7%</num><str>完成率</str>
-<num>100万</num><str>Token上下文</str>
+<num>100 万</num><str>Token 上下文</str>
 </data>
 ```
 
-### 天气块
+#### 天气块
 
 ```markdown
-<!-- 带城市名称（5段格式） -->
+<!-- 带城市名称（5 段格式） -->
 <weather>
-<day>周一|东莞|☀️|晴|26°C/17°C</day>
-<day>周二|深圳|🌧️|雨|24°C/15°C</day>
+<day>周一 | 东莞|☀️|晴|26°C/17°C</day>
+<day>周二 | 深圳|🌧️|雨|24°C/15°C</day>
 </weather>
 
-<!-- 不带城市名称（4段格式，居中显示） -->
+<!-- 不带城市名称（4 段格式，居中显示） -->
 <weather center>
 <day>周一|☀️|晴|26°C/17°C</day>
 <day>周二|⛅|多云|25°C/16°C</day>
@@ -318,8 +340,8 @@ render_mode: legacy
 ```
 
 **格式说明：**
-- 带城市：`<day>星期|城市|emoji|天气|温度</day>`
-- 不带城市：`<day>星期|emoji|天气|温度</day>`
+- 带城市：`<day>星期 | 城市|emoji|天气 | 温度</day>`
+- 不带城市：`<day>星期|emoji|天气 | 温度</day>`
 - 可选属性：`center` - 居中显示
 
 ## API 接口
@@ -366,15 +388,18 @@ tests/tags/               ✓ 标签处理器测试
 ├── sectionHandler.test.js
 ├── dataHandler.test.js
 ├── weatherHandler.test.js
+├── sumHandler.test.js
+├── sumBlockHandler.test.js
+├── thinkHandler.test.js
+├── thinkBlockHandler.test.js
 └── ...
 ```
 
 ### 测试统计
 
-- **总测试数**: 189
+- **总测试数**: 261
 - **通过率**: 100%
-- **测试套件**: 21
-
+- **测试套件**: 29
 
 ## 代码质量
 
@@ -398,7 +423,7 @@ npm run commitlint
 
 ### 配置
 
-#### ESLint ([`.eslintrc.json`](.eslintrc.json))
+#### ESLint ([`eslint.config.js`](eslint.config.js))
 
 - 基于 ESLint 推荐规则
 - 支持 ES2021 + Node.js 环境
@@ -434,9 +459,24 @@ npm run commitlint
 [`src/markdownParser.js`](src/markdownParser.js) 是核心解析模块，负责：
 
 1. 解析 Front Matter 元数据
-2. 提取自定义标签
+2. 提取自定义标签（通过 `tags/index.js`）
 3. 识别文档结构（头版头条、章节、文章）
 4. 将 Markdown 转换为 HTML
+5. 处理块级标签（`<sum>`, `<think>`, `<notes>` 等）
+
+#### 标签系统
+
+[`src/parser/tags/`](src/parser/tags/) 是标签处理核心：
+
+- **`index.js`** - 标签注册表，自动发现并注册所有处理器
+- **`BaseHandler.js`** - 基础处理器类，提供通用属性（name, syntax）
+- **`MetaCollector.js`** - 元数据收集器，跟踪文档状态并收集标签数据
+- **`handlers/`** - 标签处理器目录
+  - `inline/` - 行内标签（`[tag:xxx]: #` 格式）
+  - `marker/` - 标记标签（`[section]: #` 格式，触发状态变化）
+  - `block/` - 区块标签（`<data>...</data>` 格式）
+
+详细开发指南见 [docs/tags-dev-guide.md](docs/tags-dev-guide.md)
 
 #### 文件监控
 

@@ -42,32 +42,35 @@ class AuthorHandler extends BaseHandler {
     return 'inline';
   }
 
-  parse(content, context) {
-    const results = [];
-    const lines = content.split('\n');
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const match = line.match(this.syntax);
-
-      if (match) {
-        results.push({
-          name: this.name,
-          value: match[1],
-          lineIndex: i,
-        });
-
-        if (context?.collector) {
-          context.collector.collect('author', match[1], context.state);
-        }
-      }
+  parseLine(line, context, lineIndex) {
+    const match = line.match(this.syntax);
+    if (!match) {
+      return null;
     }
 
-    return results;
+    const value = match[1];
+    
+    // 收集元数据
+    if (context?.collector) {
+      context.collector.collect('author', value, context.state);
+    }
+
+    return {
+      name: this.name,
+      value: value,
+      lineIndex
+    };
   }
 
   clean(content) {
-    return content.replace(this.syntax, '');
+    // 注意：clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
+    return content;
+  }
+
+  getStyles() {
+    return `
+.author { color: #1565c0; font-weight: 600; }
+    `.trim();
   }
 }
 
@@ -109,34 +112,83 @@ module.exports = AuthorHandler;
 
 ```
 src/parser/tags/
-├── BaseHandler.js          # 基础处理器类
-├── MetaCollector.js        # 元数据收集器（状态机）
-├── index.js               # 标签注册表（自动发现）
-└── handlers/              # 标签处理器目录
-    ├── inline/            # 行内标签处理器
-    │   ├── TagHandler.js      # [tag:] 标签
-    │   ├── FromHandler.js     # [from:] 标签
-    │   ├── FromstrHandler.js  # [fromstr:] 标签
-    │   ├── IconHandler.js     # [icon:] 标签
-    │   ├── IntroHandler.js    # [intro:] 标签
-    │   ├── SumHandler.js      # [sum:] 标签
-    │   └── ThinkHandler.js    # [think:] 标签
-    ├── marker/            # 标记标签处理器
-    │   ├── HeadHandler.js     # [head]: 标记
-    │   ├── SectionHandler.js  # [section]: 标记
-    │   └── ArticlesHandler.js # [articles]: 标记
-    └── block/             # 区块标签处理器
-        ├── DataHandler.js     # [data:] 数据块
-        ├── QuoteHandler.js    # > 引用块
-        └── WeatherHandler.js  # <weather> 天气块
+├── BaseHandler.js           # 基础处理器类
+├── MetaCollector.js         # 元数据收集器（状态机）
+├── index.js                 # 标签注册表（自动发现）
+└── handlers/                # 标签处理器目录
+    ├── inline/              # 行内标签处理器
+    │   ├── TagHandler.js       # [tag:] 标签
+    │   ├── FromHandler.js      # [from:] 标签
+    │   ├── FromstrHandler.js   # [fromstr:] 标签
+    │   ├── IconHandler.js      # [icon:] 标签
+    │   ├── IntroHandler.js     # [intro:] 标签
+    │   ├── SumHandler.js       # [sum:] 标签（行内）
+    │   └── ThinkHandler.js     # [think:] 标签（行内）
+    ├── marker/              # 标记标签处理器
+    │   ├── HeadHandler.js      # [head]: 标记
+    │   ├── SectionHandler.js   # [section]: 标记
+    │   └── ArticlesHandler.js  # [articles]: 标记
+    └── block/               # 区块标签处理器
+        ├── DataHandler.js      # <data> 数据块
+        ├── QuoteHandler.js     # > 引用块
+        ├── WeatherHandler.js   # <weather> 天气块
+        ├── SumBlockHandler.js  # <sum> 总结块
+        ├── ThinkBlockHandler.js# <think> 思考块
+        └── NotesBlockHandler.js# <notes> 笔记块
 ```
 
 ### 核心组件
 
-1. **BaseHandler** - 所有处理器的基类
-2. **MetaCollector** - 状态机和元数据收集器
-3. **TagRegistry** - 自动发现和注册处理器
+1. **BaseHandler** - 所有处理器的基类，提供通用属性和方法
+2. **MetaCollector** - 状态机和元数据收集器，跟踪文档结构
+3. **TagRegistry** - 自动发现和注册处理器（`index.js`）
 4. **Handler Classes** - 每个标签一个处理器类
+
+### 处理流程
+
+```
+Markdown 文件
+    │
+    ▼
+tags/index.js (extractTags)
+    │
+    ├── marker handlers → 更新状态（head/section/articles）
+    │
+    ├── inline handlers → 收集元数据到 MetaCollector
+    │
+    ├── block handlers  → 生成 HTML（parseDocument）
+    │
+    └── clean() → 清理标签语法（注意：不删除标签！）
+    │
+    ▼
+markdownParser.js
+    │
+    ├── parseLine() → 构建 sections/articles 结构
+    │
+    ├── tryParseSum/tryParseThink → 解析行内 sum/think
+    │
+    └── processBlockTags → 渲染块级 sum/think
+    │
+    ▼
+EJS 模板渲染
+```
+
+### 重要架构说明
+
+**`clean()` 方法行为**：
+
+所有 Handler 的 `clean()` 方法都**不删除标签**，返回原始 `content`。这是因为：
+
+1. `tags/index.js` 的 `extractTags` 负责收集元数据到 `MetaCollector`
+2. `markdownParser.js` 的 `tryParseSum`/`tryParseThink` 和 `processBlockTags` 需要访问原始标签进行渲染
+3. 如果 `clean()` 删除了标签，`markdownParser.js` 就无法处理
+
+```javascript
+// 正确的 clean() 实现
+clean(content) {
+  return content;  // 不删除标签！
+}
+```
 
 ---
 
@@ -146,16 +198,46 @@ src/parser/tags/
 
 **语法**: `[标签名：参数]: #`
 
-**特点**: 单行定义，可重复使用
+**特点**: 单行定义，可重复使用，收集元数据
 
 **示例**:
 ```markdown
 [tag:AI]: #
 [from:https://example.com]: #
 [icon:🤖]: #
+[sum:这是总结]: #
+[think:这是思考]: #
 ```
 
-**处理器示例**: `TagHandler.js`, `FromHandler.js`
+**处理器示例**: `TagHandler.js`, `FromHandler.js`, `SumHandler.js`, `ThinkHandler.js`
+
+**实现接口**:
+```javascript
+class MyHandler extends BaseHandler {
+  getType() {
+    return 'inline';
+  }
+
+  parseLine(line, context, lineIndex) {
+    const match = line.match(this.syntax);
+    if (!match) return null;
+    
+    if (context?.collector) {
+      context.collector.collect('mytag', match[1], context.state);
+    }
+    
+    return {
+      name: this.name,
+      value: match[1],
+      lineIndex
+    };
+  }
+
+  clean(content) {
+    return content;  // 不删除标签
+  }
+}
+```
 
 ### 2. 标记标签 (marker)
 
@@ -172,6 +254,34 @@ src/parser/tags/
 
 **处理器示例**: `HeadHandler.js`, `SectionHandler.js`, `ArticlesHandler.js`
 
+**实现接口**:
+```javascript
+class MyHandler extends BaseHandler {
+  getType() {
+    return 'marker';
+  }
+
+  parseLine(line, context, lineIndex) {
+    const match = line.match(this.syntax);
+    if (!match) return null;
+    
+    if (context?.collector) {
+      context.collector.onMarker('mytag');
+    }
+    
+    return {
+      name: this.name,
+      match: match[0],
+      lineIndex
+    };
+  }
+
+  clean(content) {
+    return content;  // 不删除标签
+  }
+}
+```
+
 ### 3. 区块标签 (block)
 
 **语法**: `<标签名>内容</标签名>` 或 `> 引用块`
@@ -184,24 +294,69 @@ src/parser/tags/
 <num>98.7%</num><str>完成率</str>
 </data>
 
+<sum>
+这是总结内容，可以跨多行。
+</sum>
+
+<think>
+这是思考内容。
+</think>
+
 > **引用：** 引用内容
 ```
 
-**处理器示例**: `DataHandler.js`, `QuoteHandler.js`, `WeatherHandler.js`
+**处理器示例**: `DataHandler.js`, `QuoteHandler.js`, `WeatherHandler.js`, `SumBlockHandler.js`, `ThinkBlockHandler.js`
+
+**实现接口**:
+```javascript
+class MyHandler extends BaseHandler {
+  getType() {
+    return 'block';
+  }
+
+  parseDocument(content, context) {
+    const results = [];
+    this.syntax.lastIndex = 0;
+    const matches = [...content.matchAll(this.syntax)];
+    
+    for (const match of matches) {
+      const value = match[1].trim();
+      results.push({
+        name: this.name,
+        value: value,
+        html: this._renderHTML(value)
+      });
+    }
+    
+    return results;
+  }
+
+  _renderHTML(value) {
+    return `<div class="my-tag">${value}</div>`;
+  }
+
+  clean(content) {
+    return content;  // 不删除标签
+  }
+}
+```
 
 ---
 
-## Sum 和 Think 标签
+## Sum 和 Think 标签详解
 
 系统支持两种类型的 sum（总结）和 think（思考）标签：
 
-### 行内标签（章节级别）
+### 行内标签（章节/文章级别）
 
 **语法**: `[sum:xxx]: #` / `[think:xxx]: #`
 
-**作用域**: 章节级别
+**作用域**: 根据位置自动识别
+- 在头版区域 → `headlineSum` / `headlineThink`
+- 在章节区域 → `sectionMeta.sum` / `sectionMeta.thinks`
+- 在文章区域 → `articleMeta.sum` / `articleMeta.thinks`
 
-**渲染位置**: 章节末尾
+**渲染位置**: 章节/文章末尾（由视图层控制）
 
 **示例**:
 ```markdown
@@ -211,8 +366,6 @@ src/parser/tags/
 # AI 热点深度分析
 [articles]: #
 ## 文章 1
-文章内容...
-## 文章 2
 文章内容...
 [sum:这是章节总结，会渲染在章节末尾]: #
 [think:这是章节思考，会渲染在章节末尾]: #
@@ -224,8 +377,6 @@ src/parser/tags/
 │  🤖 AI 热点深度分析        P01      │
 ├─────────────────────────────────────┤
 │  文章 1 标题                          │
-│  文章内容...                        │
-│  文章 2 标题                          │
 │  文章内容...                        │
 ├─────────────────────────────────────┤
 │  ┌─────────────────────────────┐    │
@@ -245,7 +396,7 @@ src/parser/tags/
 
 **作用域**: 任意位置
 
-**渲染位置**: 标签所在位置
+**渲染位置**: 标签所在位置（由 `markdownParser.js` 的 `processBlockTags` 处理）
 
 **示例**:
 ```markdown
@@ -281,19 +432,13 @@ src/parser/tags/
 
 ## 新增标签处理器
 
-### 处理器接口约定（当前）
-
-- `inline` / `marker` 处理器：实现 `parseLine(line, context, lineIndex)`。
-- `block` 处理器：实现 `parseDocument(content, context)`。
-- `BaseHandler.parse()` 为兼容入口，会根据 `getType()` 自动分发到对应方法。
-- 清理逻辑仍通过 `clean(content)` 完成。
-
 ### 步骤 1：创建处理器文件
 
 在 `src/parser/tags/handlers/` 目录下创建新文件，例如 `AuthorHandler.js`：
 
 ```javascript
-const BaseHandler = require('../BaseHandler');
+// src/parser/tags/handlers/inline/AuthorHandler.js
+const BaseHandler = require('../../BaseHandler');
 
 class AuthorHandler extends BaseHandler {
   constructor() {
@@ -305,33 +450,29 @@ class AuthorHandler extends BaseHandler {
     return 'inline';
   }
 
-  parse(content, context) {
-    const results = [];
-    const lines = content.split('\n');
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const match = line.match(this.syntax);
-
-      if (match) {
-        results.push({
-          name: this.name,
-          value: match[1],
-          lineIndex: i,
-        });
-
-        // 如果需要收集到元数据
-        if (context?.collector) {
-          context.collector.collect('author', match[1], context.state);
-        }
-      }
+  parseLine(line, context, lineIndex) {
+    const match = line.match(this.syntax);
+    if (!match) {
+      return null;
     }
 
-    return results;
+    const value = match[1];
+    
+    // 收集元数据
+    if (context?.collector) {
+      context.collector.collect('author', value, context.state);
+    }
+
+    return {
+      name: this.name,
+      value: value,
+      lineIndex
+    };
   }
 
   clean(content) {
-    return content.replace(this.syntax, '');
+    // 注意：不删除标签，因为标签需要保留给 markdownParser.js 处理
+    return content;
   }
 
   getStyles() {
@@ -348,7 +489,7 @@ module.exports = AuthorHandler;
 
 处理器文件创建后会自动被 `index.js` 发现并注册，无需手动配置。
 
-### 步骤 3：在 MetaCollector 中添加收集逻辑（可选）
+### 步骤 3：在 MetaCollector 中添加收集逻辑
 
 如果标签需要收集到元数据中，在 `MetaCollector.js` 的 `collect()` 方法中添加：
 
@@ -372,20 +513,24 @@ case 'author':
   break;
 ```
 
-### 步骤 4：更新 getResult() 方法（如果需要）
+### 步骤 4：更新 getResult() 方法
 
 在 `MetaCollector.js` 的 `getResult()` 方法中添加返回字段：
 
 ```javascript
 return {
   // ... 其他字段
-  headAuthor: this.headAuthor, // 添加这一行
+  headAuthor: this.headAuthor,
+  // ...
 };
 ```
 
-### 步骤 5：更新 markdownParser.js（如果需要）
+### 步骤 5：更新 markdownParser.js
 
-如果新字段需要在 `sections` 或 `articles` 中访问，在 `markdownParser.js` 的 `parseMarkdown()` 函数中，将新字段从 `sectionArticleMeta` 映射到返回的 section/article 对象中。
+如果新字段需要在 `sections` 或 `articles` 中访问：
+
+1. 在 `createSectionNode()` 或 `createArticleNode()` 中添加字段映射
+2. 在 `sanitizeStructuredMeta()` 中添加安全处理（如果需要）
 
 ---
 
@@ -393,9 +538,11 @@ return {
 
 标签可以在不同上下文中使用，系统会自动识别：
 
-- **headline** - 头版头条区域
-- **section** - 章节区域
-- **article** - 文章区域
+| 作用域 | 状态条件 | 数据收集位置 |
+|--------|----------|--------------|
+| **headline** | `!inSection && !inArticles` | `headlineSum`, `headlineThink`, `headlineTags` |
+| **section** | `inSection && !inArticles` | `currentMeta.sum`, `currentMeta.thinks` |
+| **article** | `inSection && inArticles` | `currentArticleMeta.sum`, `currentArticleMeta.thinks` |
 
 状态由 `MetaCollector` 跟踪，通过 `context.state` 访问。
 
@@ -417,9 +564,14 @@ this.state = {
 ```
 
 状态变化由标记标签触发：
-- `[head]:` → `inHeadline = true`
+- `[head]:` → `hasHeadMarker = true`
 - `[section]:` → `inSection = true`, `sectionIndex++`
 - `[articles]:` → `inArticles = true`
+
+标题也会触发状态变化：
+- `# 标题`（在头版后）→ `inHeadline = false`
+- `# 标题`（在章节中）→ 保存当前文章，开始新章节
+- `## 标题`（在文章中）→ 保存当前文章，开始新文章
 
 ---
 
@@ -451,8 +603,15 @@ this.state = {
     <% if (article.from) { %>
     <a href="<%= article.from %>">来源</a>
     <% } %>
+    <% if (article.sum) { %>
+    <div class="article-sum"><%= article.sum %></div>
+    <% } %>
   </div>
   <% }); %>
+  
+  <% if (section.summary) { %>
+  <div class="section-summary"><%= section.summary %></div>
+  <% } %>
 </div>
 <% }); %>
 ```
@@ -465,12 +624,17 @@ this.state = {
 
 ```javascript
 const AuthorHandler = require('../../src/parser/tags/handlers/inline/AuthorHandler');
+const MetaCollector = require('../../src/parser/tags/MetaCollector');
 
 describe('AuthorHandler', () => {
   let handler;
+  let collector;
+  let context;
 
   beforeEach(() => {
     handler = new AuthorHandler();
+    collector = new MetaCollector();
+    context = { collector, state: {} };
   });
 
   test('should have correct name', () => {
@@ -482,18 +646,32 @@ describe('AuthorHandler', () => {
   });
 
   test('should parse author syntax', () => {
-    const content = '[author:张三]: #';
-    const results = handler.parse(content, {});
-    expect(results).toHaveLength(1);
-    expect(results[0].value).toBe('张三');
+    const line = '[author:张三]: #';
+    const result = handler.parseLine(line, context, 0);
+    expect(result).toBeTruthy();
+    expect(result.value).toBe('张三');
   });
 
-  test('should clean author syntax', () => {
+  test('should collect author in section context', () => {
+    collector.onMarker('section');
+    const line = '[author:张三]: #';
+    handler.parseLine(line, context, 0);
+    const meta = collector.getResult();
+    expect(meta.sectionArticleMeta[0].author).toBe('张三');
+  });
+
+  test('should clean without removing tags', () => {
+    // 注意：clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
     const content = '[author:张三]: #\n其他内容';
     const cleaned = handler.clean(content);
-    expect(cleaned).toBe('\n其他内容');
+    expect(cleaned).toBe(content);
   });
 });
+```
+
+运行测试：
+```bash
+npm test -- AuthorHandler
 ```
 
 ---
@@ -510,14 +688,20 @@ getStyles() {
 }
 ```
 
-样式会自动被收集并注入到页面的 `<style>` 标签中。
+样式会自动被 `TagRegistry.collectStyles()` 收集，并通过 `getStylesHTML()` 注入到页面的 `<style>` 标签中。
 
 ---
 
 ## 完整示例
 
 查看现有处理器作为参考：
-- [`TagHandler.js`](src/parser/tags/handlers/inline/TagHandler.js) - 简单的行内标签
-- [`FromHandler.js`](src/parser/tags/handlers/inline/FromHandler.js) - 带 URL 的标签
-- [`DataHandler.js`](src/parser/tags/handlers/block/DataHandler.js) - 复杂的区块标签
-- [`QuoteHandler.js`](src/parser/tags/handlers/block/QuoteHandler.js) - 引用块处理
+
+| 文件 | 类型 | 描述 |
+|------|------|------|
+| [`TagHandler.js`](src/parser/tags/handlers/inline/TagHandler.js) | inline | 简单的行内标签 |
+| [`FromHandler.js`](src/parser/tags/handlers/inline/FromHandler.js) | inline | 带 URL 的标签 |
+| [`SumHandler.js`](src/parser/tags/handlers/inline/SumHandler.js) | inline | 行内总结标签 |
+| [`SumBlockHandler.js`](src/parser/tags/handlers/block/SumBlockHandler.js) | block | 块级总结标签 |
+| [`DataHandler.js`](src/parser/tags/handlers/block/DataHandler.js) | block | 复杂的数据块 |
+| [`QuoteHandler.js`](src/parser/tags/handlers/block/QuoteHandler.js) | block | 引用块处理 |
+| [`SectionHandler.js`](src/parser/tags/handlers/marker/SectionHandler.js) | marker | 章节标记 |
