@@ -58,6 +58,10 @@ daily-report-renderer/
 │       ├── frontMatter.js     # Front Matter 解析
 │       ├── blocks.js          # 块级标签处理
 │       ├── security.js        # 安全处理
+│       ├── stateMachine.js    # 文档结构状态机
+│       ├── sanitizers.js      # 结构化字段净化
+│       ├── renderers/         # 渲染编排模块
+│       │   └── htmlRenderer.js# HTML 渲染器
 │       └── tags/              # 标签处理器模块
 │           ├── index.js       # 标签注册表（自动发现）
 │           ├── BaseHandler.js # 基础处理器类
@@ -393,6 +397,11 @@ tests/tags/               ✓ 标签处理器测试
 ├── thinkHandler.test.js
 ├── thinkBlockHandler.test.js
 └── ...
+
+tests/parser/             ✓ 解析器子模块测试
+├── stateMachine.test.js
+├── renderers/htmlRenderer.test.js
+└── sanitizers.test.js
 ```
 
 ### 测试统计
@@ -460,9 +469,9 @@ npm run commitlint
 
 1. 解析 Front Matter 元数据
 2. 提取自定义标签（通过 `tags/index.js`）
-3. 识别文档结构（头版头条、章节、文章）
-4. 将 Markdown 转换为 HTML
-5. 处理块级标签（`<sum>`, `<think>`, `<notes>` 等）
+3. 调用 `src/parser/stateMachine.js` 构建文档结构（头版头条、章节、文章）
+4. 调用 `src/parser/sanitizers.js` 处理 safe 模式结构化净化
+5. 调用 `src/parser/renderers/htmlRenderer.js` 完成 HTML 渲染与 block 后处理
 
 #### 标签系统
 
