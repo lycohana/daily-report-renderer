@@ -65,7 +65,6 @@ describe('DataHandler', () => {
 
   test('should return styles', () => {
     const styles = handler.getStyles();
-    expect(styles).toContain('.front-stats');
-    expect(styles).toContain('.front-stat');
+    expect(styles).toBe('');
   });
 });
