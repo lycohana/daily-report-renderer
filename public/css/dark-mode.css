@@ -58,9 +58,19 @@ html[data-theme='dark'] .theme-toggle{
   color:#d7e3f7
 }
 
+html[data-theme='dark'] .back-top-toggle{
+  background:#1a2230;
+  border-color:#334258;
+  color:#d7e3f7
+}
+
 html[data-theme='dark'] .theme-toggle:hover{
   border-color:var(--accent-blue);
   color:var(--accent-blue)
+}
+
+html[data-theme='dark'] .back-top-toggle:hover{
+  color:var(--accent-red)
 }
 
 html[data-theme='dark'] .footer{
@@ -211,3 +221,4 @@ html[data-theme='dark'] .progress-percent{
   color:#b8cdf1;
   box-shadow:0 2px 8px rgba(0,0,0,.35)
 }
+

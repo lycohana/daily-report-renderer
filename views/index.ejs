@@ -24,7 +24,6 @@
     html{scroll-behavior:smooth;overflow-x:hidden}
     body{font-family:'Noto Sans SC','Noto Serif SC',serif;background:var(--paper-bg);color:var(--text-dark);line-height:1.8;min-height:100vh;padding:30px 20px 60px;background-image:linear-gradient(90deg,transparent 79px,#e5e2db 79px,#e5e2db 81px,transparent 81px),linear-gradient(#e5e2db 1px,transparent 1px);background-size:100% 28px;overflow-x:hidden}
     .container{max-width:900px;margin:0 auto;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,.12);position:relative;z-index:1}
-    .toolbar{position:fixed;right:18px;bottom:18px;z-index:10002;display:flex;align-items:center;padding:0;background:rgba(255,255,255,.82);border:1px solid var(--border-color);border-radius:999px;backdrop-filter:blur(6px);box-shadow:0 6px 20px rgba(0,0,0,.12)}
     .masthead{padding:32px 40px;text-align:center;border-bottom:4px solid var(--ink-black);background:linear-gradient(180deg,#faf9f6 0%,#fff 100%)}
     .masthead h1{font-family:'Noto Serif SC',serif;font-size:2.8rem;font-weight:900;letter-spacing:12px;margin-bottom:10px;color:var(--ink-black)}
     .masthead .meta{display:flex;justify-content:center;gap:28px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}
@@ -77,25 +76,17 @@
     .footer p{margin-bottom:5px}
     .loading{text-align:center;padding:60px 20px;color:var(--text-muted)}
     .loading-spinner{display:inline-block;width:40px;height:40px;border:3px solid var(--border-color);border-top-color:var(--accent-red);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px}
-    .theme-toggle{width:44px;height:44px;border:none;background:transparent;color:var(--text-dark);border-radius:50%;font-size:1.05rem;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .25s}
-    .theme-toggle:hover{border-color:var(--accent-blue);color:var(--accent-blue)}
-    .theme-toggle-icon{font-size:1.05rem}
     @keyframes spin{to{transform:rotate(360deg)}}
     </style>
     <style>
-    @media(max-width:768px){.toolbar{right:10px;bottom:10px}.theme-toggle{width:40px;height:40px}.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}.container{max-width:100%;overflow-x:hidden}}
-    @media print{body{background:#fff;padding:0}.container{box-shadow:none}.section{break-inside:avoid}.toolbar{display:none}}
+    @media(max-width:768px){.masthead,.front-page,.toc,.main-content,.notes-section{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.front-headline{font-size:1.5rem}.front-stats{flex-direction:column;gap:12px}.toc-grid,.notes-grid{grid-template-columns:1fr}.container{max-width:100%;overflow-x:hidden}}
+    @media print{body{background:#fff;padding:0}.container{box-shadow:none}.section{break-inside:avoid}.toolbar-wrap,.toolbar{display:none}}
   </style>
-  <link rel="stylesheet" href="/css/dark-mode.css">
+  <%- include('partials/toolbar-head') %>
 </head>
 <body>
   <%- include('partials/progress') %>
-
-  <div class="toolbar">
-    <button id="themeToggle" class="theme-toggle" type="button" aria-label="切换到暗黑模式" aria-pressed="false">
-      <span class="theme-toggle-icon">🌙</span>
-    </button>
-  </div>
+  <%- include('partials/toolbar') %>
 
   <div class="container">
 
@@ -299,6 +290,6 @@
       <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
     </footer>
   </div>
-  <script src="/js/dark-mode.js"></script>
+  <%- include('partials/toolbar-script') %>
 </body>
 </html>

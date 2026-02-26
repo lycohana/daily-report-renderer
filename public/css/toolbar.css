@@ -1,0 +1,144 @@
+/* Toolbar base styles */
+.toolbar-wrap{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  z-index:10002
+}
+
+.toolbar{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  padding:8px;
+  background:rgba(255,255,255,.82);
+  border:1px solid var(--border-color);
+  border-radius:30px;
+  backdrop-filter:blur(6px);
+  box-shadow:0 6px 20px rgba(0,0,0,.12);
+  transition:all .3s ease
+}
+
+.toolbar:has(.back-top-toggle:not(.is-visible)){
+  gap:0;
+  padding-top:8px;
+  padding-bottom:8px
+}
+
+.theme-toggle{
+  width:44px;
+  height:44px;
+  border:1px solid var(--border-color);
+  background:rgba(255,255,255,.86);
+  color:var(--text-dark);
+  border-radius:50%;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+  box-shadow:0 4px 14px rgba(0,0,0,.12);
+  transition:all .25s
+}
+
+.theme-toggle:hover{
+  color:var(--accent-blue);
+  border-color:var(--accent-blue)
+}
+
+.theme-toggle-icon{
+  width:20px;
+  height:20px
+}
+
+.theme-toggle-icon-moon,
+.theme-toggle-icon-sun{
+  width:20px;
+  height:20px
+}
+
+.back-top-toggle{
+  width:44px;
+  height:44px;
+  border:1px solid var(--border-color);
+  background:rgba(255,255,255,.86);
+  color:var(--text-dark);
+  border-radius:50%;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  backdrop-filter:blur(6px);
+  box-shadow:0 4px 14px rgba(0,0,0,.12);
+  opacity:0;
+  visibility:hidden;
+  transform:scale(0.8);
+  margin-top:-44px;
+  pointer-events:none;
+  transition:opacity .2s ease,transform .24s ease,color .25s,margin .24s ease,visibility 0s linear .24s
+}
+
+.back-top-toggle:hover{
+  color:var(--accent-red);
+  border-color:var(--accent-red)
+}
+
+.back-top-toggle.is-visible{
+  opacity:1;
+  visibility:visible;
+  transform:scale(1);
+  margin-top:0;
+  pointer-events:auto;
+  transition-delay:.12s,.12s,0s,.12s,0s
+}
+
+.back-top-toggle-icon{
+  width:20px;
+  height:20px
+}
+
+@media(max-width:768px){
+  .toolbar-wrap{
+    right:10px;
+    bottom:10px
+  }
+
+  .toolbar{
+    padding:6px;
+    gap:6px;
+    border-radius:26px
+  }
+
+  .toolbar:has(.back-top-toggle:not(.is-visible)){
+    gap:0;
+    padding-top:6px;
+    padding-bottom:6px
+  }
+
+  .theme-toggle{
+    width:40px;
+    height:40px
+  }
+
+  .theme-toggle-icon,
+  .theme-toggle-icon-moon,
+  .theme-toggle-icon-sun,
+  .back-top-toggle-icon{
+    width:18px;
+    height:18px
+  }
+
+  .back-top-toggle{
+    width:40px;
+    height:40px;
+    margin-top:-40px;
+    transition:opacity .2s ease,transform .24s ease,color .25s,margin .24s ease,visibility 0s linear .24s
+  }
+
+  .back-top-toggle.is-visible{
+    margin-top:0;
+    transition-delay:.12s,.12s,0s,.12s,0s
+  }
+}
+
