@@ -36,7 +36,8 @@
 .article-desc img,
 .front-summary img,
 .main-content img,
-.front-detail img {
+.front-detail img,
+.notes-section img {
   max-width: 100%;
   height: auto;
   display: block;
@@ -45,24 +46,15 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Front Detail 图片特殊限制 - 防止过高 */
-.front-detail img {
-  max-height: 400px;
-  object-fit: contain;
-}
-
 /* 响应式图片样式 */
 @media (max-width: 768px) {
   .article-desc img,
   .front-summary img,
   .main-content img,
-  .front-detail img {
+  .front-detail img,
+  .notes-section img {
     max-width: 100%;
     margin: 12px auto;
-  }
-  
-  .front-detail img {
-    max-height: 300px;
   }
 }
 
