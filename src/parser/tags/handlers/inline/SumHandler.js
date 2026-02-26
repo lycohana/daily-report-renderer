@@ -38,15 +38,14 @@ class SumHandler extends BaseHandler {
   }
 
   clean(content) {
-    return content.replace(new RegExp(this.syntax.source, 'gm'), '');
+    return content;
   }
 
   getStyles() {
-    // 样式保留，因为视图层仍需要使用
     return `
 .analysis-box{margin-top:28px;padding:20px;background:#f8f9fa;border-left:4px solid var(--accent-blue);border-radius:0 8px 8px 0}
-.analysis-title{font-size:.85rem;font-weight:600;color:var(--accent-blue);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.analysis-title::before{content:'■';color:var(--accent-blue);font-size:.6rem}
+.analysis-title{font-size:.85rem;font-weight:600;color:var(--accent-blue);margin-bottom:10px;display:flex;align-items:center;gap:.8px}
+.analysis-title::before{content:'💡';color:var(--accent-blue);font-size:.9rem}
 .analysis-content{font-size:.92rem;color:var(--text-dark);line-height:1.65}
     `.trim();
   }

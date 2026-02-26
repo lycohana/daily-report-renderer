@@ -38,7 +38,7 @@ class ThinkHandler extends BaseHandler {
   }
 
   clean(content) {
-    return content.replace(new RegExp(this.syntax.source, 'gm'), '');
+    return content;
   }
 
   getStyles() {

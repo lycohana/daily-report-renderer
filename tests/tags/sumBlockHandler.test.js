@@ -47,9 +47,10 @@ Line 2
   });
 
   test('should clean sum block syntax', () => {
+    // clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
     const content = 'Before<sum>summary</sum>After';
     const cleaned = handler.clean(content);
-    expect(cleaned).toBe('BeforeAfter');
+    expect(cleaned).toBe(content);
   });
 
   test('should return styles', () => {

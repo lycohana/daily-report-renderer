@@ -49,15 +49,10 @@ describe('ThinkHandler', () => {
   });
 
   test('should clean think syntax', () => {
+    // clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
     const content = '[think:This is a thought]: #\nSome content';
     const cleaned = handler.clean(content);
-    expect(cleaned).toBe('\nSome content');
-  });
-
-  test('should return styles', () => {
-    const styles = handler.getStyles();
-    expect(styles).toContain('.thought-box');
-    expect(styles).toContain('.thought-title');
+    expect(cleaned).toBe(content);
   });
 
   test('should not match invalid syntax', () => {

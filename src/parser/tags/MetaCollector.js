@@ -217,8 +217,9 @@ class MetaCollector {
       if (!inSection && !inArticles) {
         // headline 级别（包括#标题之后的区域）
         this.headlineSum = value;
-      } else if (inArticles && this.currentArticleMeta && this._articleMetaHasContent()) {
-        // 文章级别（只有当有实际内容时）
+      } else if (inArticles && this.currentArticleMeta) {
+        // 文章级别：只要在文章上下文中，就收集到文章元数据
+        // 即使 from/tags 还没出现，也先收集到文章级别
         this.currentArticleMeta.sum = value;
       } else {
         // section 级别（默认）
@@ -232,8 +233,9 @@ class MetaCollector {
       if (!inSection && !inArticles) {
         // headline 级别（包括#标题之后的区域）
         this.headlineThink = value;
-      } else if (inArticles && this.currentArticleMeta && this._articleMetaHasContent()) {
-        // 文章级别（只有当有实际内容时）
+      } else if (inArticles && this.currentArticleMeta) {
+        // 文章级别：只要在文章上下文中，就收集到文章元数据
+        // 即使 from/tags 还没出现，也先收集到文章级别
         if (!this.currentArticleMeta.thinks) {
           this.currentArticleMeta.thinks = [];
         }

@@ -40,7 +40,7 @@ class ThinkBlockHandler extends BaseHandler {
 
   clean(content) {
     // 删除 <think>...</think> 标签，保留内容
-    return content.replace(this.syntax, '');
+    return content;
   }
 
   getStyles() {

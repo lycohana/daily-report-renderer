@@ -49,9 +49,10 @@ describe('SumHandler', () => {
   });
 
   test('should clean sum syntax', () => {
+    // clean() 不删除标签，因为标签需要保留给 markdownParser.js 处理
     const content = '[sum:This is a summary]: #\nSome content';
     const cleaned = handler.clean(content);
-    expect(cleaned).toBe('\nSome content');
+    expect(cleaned).toBe(content);
   });
 
   test('should not match invalid syntax', () => {
