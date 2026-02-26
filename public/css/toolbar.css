@@ -3,7 +3,9 @@
   position:fixed;
   right:18px;
   bottom:18px;
-  z-index:10002
+  z-index:10002;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0)
 }
 
 .toolbar{
@@ -15,9 +17,12 @@
   background:rgba(255,255,255,.82);
   border:1px solid var(--border-color);
   border-radius:30px;
+  -webkit-backdrop-filter:blur(6px);
   backdrop-filter:blur(6px);
   box-shadow:0 6px 20px rgba(0,0,0,.12);
-  transition:all .3s ease
+  transition:all .3s ease;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0)
 }
 
 .toolbar:has(.back-top-toggle:not(.is-visible)){
@@ -37,9 +42,14 @@
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  -webkit-backdrop-filter:blur(6px);
   backdrop-filter:blur(6px);
   box-shadow:0 4px 14px rgba(0,0,0,.12);
-  transition:all .25s
+  transition:all .25s;
+  -webkit-transform:translateZ(0);
+  transform:translateZ(0);
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden
 }
 
 .theme-toggle:hover{
@@ -69,13 +79,19 @@
   display:inline-flex;
   align-items:center;
   justify-content:center;
+  -webkit-backdrop-filter:blur(6px);
   backdrop-filter:blur(6px);
   box-shadow:0 4px 14px rgba(0,0,0,.12);
   opacity:0;
+  -webkit-transform:scale(0.8) translateY(10px);
   transform:scale(0.8) translateY(10px);
   margin-top:-44px;
   pointer-events:none;
-  transition:opacity .3s ease,transform .3s ease,margin .3s ease
+  transition:opacity .3s ease,-webkit-transform .3s ease,margin .3s ease;
+  transition:opacity .3s ease,transform .3s ease,margin .3s ease;
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+  will-change:opacity,transform
 }
 
 .back-top-toggle:hover{
@@ -85,6 +101,7 @@
 
 .back-top-toggle.is-visible{
   opacity:1;
+  -webkit-transform:scale(1) translateY(0);
   transform:scale(1) translateY(0);
   margin-top:0;
   pointer-events:auto
@@ -130,6 +147,7 @@
     width:40px;
     height:40px;
     margin-top:-40px;
+    transition:opacity .3s ease,-webkit-transform .3s ease,margin .3s ease;
     transition:opacity .3s ease,transform .3s ease,margin .3s ease
   }
 
