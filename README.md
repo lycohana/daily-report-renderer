@@ -1,19 +1,34 @@
 # Daily Report Renderer
 
+**版本**: 1.0.0
+**最后更新**: 2026-02-26
+
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.18-blue.svg)](https://expressjs.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-日报渲染系统 - 自动监控 Markdown 文件并渲染为精美的 HTML 日报页面。
+日报渲染系统 (Daily Report Renderer) - 自动监控 Markdown 文件并渲染为精美的 HTML 日报页面。
 
 ## 特性
 
-- 📄 **Markdown 解析**: 支持 Front Matter、自定义标签、结构化章节
-- 🔄 **实时监控**: 使用 chokidar 监控文件变化，自动重新渲染
-- 💾 **缓存机制**: 内置内存缓存，提升响应速度
-- 🎨 **精美 UI**: 报纸风格设计，响应式布局
-- 🧪 **完整测试**: Jest 单元测试 + 集成测试（261 个测试）
-- ✅ **代码质量**: ESLint + Prettier + Commitlint
+| 特性 | 描述 |
+|------|------|
+| 📄 **Markdown 解析** | 支持 Front Matter、自定义标签、结构化章节 |
+| 🔄 **实时监控** | 使用 chokidar 监控文件变化，自动重新渲染 |
+| 💾 **缓存机制** | 内置内存缓存，提升响应速度 |
+| 🎨 **精美 UI** | 报纸风格设计，响应式布局 |
+| 🌗 **主题系统** | 浅色/暗黑双模式支持 |
+| 🧪 **完整测试** | Jest 单元测试 + 集成测试（261 个测试） |
+| ✅ **代码质量** | ESLint + Prettier + Commitlint |
+| 🔒 **安全模式** | 支持 HTML 白名单净化 |
+
+## 快速链接
+
+| 文档 | 描述 |
+|------|------|
+| [API 文档](docs/API.md) | 完整的 API 接口文档 |
+| [标签开发指南](docs/tags-dev-guide.md) | 自定义标签开发指南 |
+| [主题开发指南](docs/theme-dev-guide.md) | 主题系统开发指南 |
 
 ## 快速开始
 

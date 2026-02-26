@@ -1,6 +1,9 @@
 # 自定义标签开发指南
 
-本文档说明如何在日报系统中新增自定义标签。
+**版本**: 1.0.0
+**最后更新**: 2026-02-26
+
+本文档说明如何在日报系统中新增自定义标签。系统采用模块化标签处理架构，支持自动发现和注册标签处理器。
 
 ## 目录
 
@@ -63,8 +66,9 @@ class AuthorHandler extends BaseHandler {
   }
 
   clean(content) {
-    // 注意：clean() 不删除标签，因为标签需要保留给结构解析与渲染模块处理
-    return content;
+    // 注意：行内标签通常删除标签语法
+    // 如果是 sum/think 等特殊标签，需要保留内容供 stateMachine.js 解析
+    return content.replace(new RegExp(this.syntax.source, 'gm'), '');
   }
 
   getStyles() {
@@ -153,19 +157,23 @@ Markdown 文件
 tags/index.js (extractTags)
     │
     ├── marker handlers → 更新状态（head/section/articles）
+    │                     ↓
+    │                     clean() 删除标签语法
     │
     ├── inline handlers → 收集元数据到 MetaCollector
+    │                     ↓
+    │                     clean() 删除标签语法 (sum/think 除外)
     │
     ├── block handlers  → 生成 HTML（parseDocument）
-    │
-    └── clean() → 清理标签语法（注意：不删除标签！）
+    │                     ↓
+    │                     clean() 保留内容
     │
     ▼
 parser/stateMachine.js
     │
     ├── parseLine() → 构建 sections/articles 结构
     │
-    └── tryParseSum/tryParseThink → 解析行内 sum/think
+    └── tryParseSum/tryParseThink → 解析行内 sum/think（需要保留的标签）
     │
     ▼
 parser/renderers/htmlRenderer.js
@@ -178,20 +186,41 @@ EJS 模板渲染
 
 ### 重要架构说明
 
-**`clean()` 方法行为**：
+#### `clean()` 方法行为
 
-所有 Handler 的 `clean()` 方法都**不删除标签**，返回原始 `content`。这是因为：
+不同类型的标签处理器有不同的 `clean()` 行为：
 
-1. `tags/index.js` 的 `extractTags` 负责收集元数据到 `MetaCollector`
-2. `stateMachine.js` 的 `tryParseSum`/`tryParseThink` 与 `htmlRenderer.js` 的 `processBlocks()` 需要访问原始标签进行渲染
-3. 如果 `clean()` 删除了标签，结构解析与渲染阶段就无法处理
+| 类型 | 行为 | 原因 | 示例文件 |
+|------|------|------|----------|
+| **行内标签** (inline) | 删除标签语法 | 元数据已收集到 `MetaCollector` | `TagHandler.js`, `FromHandler.js` |
+| **标记标签** (marker) | 删除标签语法 | 状态已更新，标签不再需要 | `HeadHandler.js`, `SectionHandler.js` |
+| **区块标签** (block) | 通常不删除 | 需要在渲染阶段处理 HTML | `DataHandler.js`, `WeatherHandler.js` |
+| **特殊行内标签** (`sum`/`think`) | 不删除 | 需要在 `stateMachine.js` 中再次解析 | `SumHandler.js`, `ThinkHandler.js` |
+
+**示例**:
 
 ```javascript
-// 正确的 clean() 实现
+// 行内/标记标签 - 删除语法
 clean(content) {
-  return content;  // 不删除标签！
+  return content.replace(new RegExp(this.syntax.source, 'gm'), '');
+}
+
+// 区块标签 - 保留内容
+clean(content) {
+  return content;  // 不删除，由渲染阶段处理
+}
+
+// 特殊行内标签 (sum/think) - 保留内容
+clean(content) {
+  return content;  // 不删除，供 stateMachine.js 解析
 }
 ```
+
+**注意事项**:
+
+1. 行内标签和标记标签在元数据收集完成后会删除标签语法
+2. 区块标签保留原始内容，由 `htmlRenderer.js` 的 `processBlocks()` 处理
+3. `sum` 和 `think` 行内标签特殊处理，保留内容供 `stateMachine.js` 的 `tryParseSum`/`tryParseThink` 解析
 
 ---
 
@@ -492,9 +521,23 @@ module.exports = AuthorHandler;
 
 处理器文件创建后会自动被 `index.js` 发现并注册，无需手动配置。
 
-### 步骤 3：在 MetaCollector 中添加收集逻辑
+### 步骤 3：判断是否需要在 MetaCollector 中添加收集逻辑
 
-如果标签需要收集到元数据中，在 `MetaCollector.js` 的 `collect()` 方法中添加：
+**如果新标签是以下类型，无需添加收集逻辑**（已内置支持）：
+
+| 标签类型 | 说明 |
+|----------|------|
+| `tag` | 标签分类 |
+| `from` | 来源链接 |
+| `fromstr` | 来源名称 |
+| `intro` | 章节简介 |
+| `icon` | 章节图标 |
+| `sum` | 摘要 |
+| `think` | 思考 |
+
+**如果新标签是自定义类型**，需要在 `MetaCollector.js` 的 `collect()` 方法中添加收集逻辑：
+
+### 步骤 4：在 MetaCollector 中添加收集逻辑
 
 ```javascript
 case 'author':
@@ -516,7 +559,7 @@ case 'author':
   break;
 ```
 
-### 步骤 4：更新 getResult() 方法
+### 步骤 5：更新 getResult() 方法
 
 在 `MetaCollector.js` 的 `getResult()` 方法中添加返回字段：
 
@@ -528,7 +571,7 @@ return {
 };
 ```
 
-### 步骤 5：更新结构映射与净化模块
+### 步骤 6：更新结构映射与净化模块
 
 如果新字段需要在 `sections` 或 `articles` 中访问：
 
@@ -553,7 +596,9 @@ return {
 
 ## 状态机
 
-`MetaCollector` 管理文档解析状态：
+`MetaCollector` 管理文档解析状态，分为公共状态和内部状态。
+
+### 公共状态 (`state` 对象)
 
 ```javascript
 this.state = {
@@ -575,6 +620,26 @@ this.state = {
 - `# 标题`（在头版后）→ `inHeadline = false`
 - `# 标题`（在章节中）→ 保存当前文章，开始新章节
 - `## 标题`（在文章中）→ 保存当前文章，开始新文章
+
+### 内部状态（不直接暴露）
+
+除了 `state` 对象外，`MetaCollector` 还维护以下内部状态：
+
+| 状态 | 类型 | 描述 |
+|------|------|------|
+| `currentMeta` | Object | 当前章节的元数据 |
+| `currentArticleMeta` | Object | 当前文章的元数据 |
+| `sectionArticleMeta` | Array | 所有章节/文章元数据数组 |
+| `headlineTags` | Array | 头版区域的标签 |
+| `headFrom` | String | 头版区域的来源 URL |
+| `headlineSum` | String | 头版区域的摘要 |
+| `headlineThink` | String | 头版区域的思考 |
+| `currentDataBlockPosition` | String | 当前数据块位置（headline/section/article） |
+| `headlineDataBlocks` | Array | 头版数据块 |
+| `sectionDataBlocks` | Array | 章节数据块 |
+| `articleDataBlocks` | Array | 文章数据块 |
+| `weather` | Array | 天气数据数组 |
+| `quoteBlocks` | Array | 引用块数组 |
 
 ---
 
