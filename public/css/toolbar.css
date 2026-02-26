@@ -138,6 +138,6 @@
 
   .back-top-toggle.is-visible{
     margin-top:0;
-    transition-delay:.12s,.12s,0s,1s,0s
+    transition-delay:.12s,.12s,0s,.12s,0s
   }
 }
