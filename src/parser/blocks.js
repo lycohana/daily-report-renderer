@@ -36,16 +36,28 @@ function renderDataBlock(dataContent) {
   const numStrRegex = /<num>([\s\S]*?)<\/num>\s*<str>([\s\S]*?)<\/str>/g;
   let numMatch;
   while ((numMatch = numStrRegex.exec(dataContent)) !== null) {
-    items.push({ value: escapeHtml(numMatch[1]), label: escapeHtml(numMatch[2]) });
+    const rawValue = numMatch[1].trim();
+    // 提取数值和单位（如 98.7%、100 万、1.5 亿等）
+    const numValue = parseFloat(rawValue.replace(/,/g, ''));
+    // 提取单位后缀（百分号、万、亿等）
+    const unitMatch = rawValue.match(/[\d.]+(.*?)$/);
+    const unit = unitMatch && unitMatch[1] ? unitMatch[1] : '';
+    items.push({
+      value: escapeHtml(rawValue),
+      label: escapeHtml(numMatch[2]),
+      numValue: isNaN(numValue) ? null : numValue,
+      unit: escapeHtml(unit)
+    });
   }
   
   if (items.length > 0) {
-    const itemsHtml = items.map(item =>
-      `<div class="front-stat">
-        <div class="front-stat-value">${item.value}</div>
+    const itemsHtml = items.map(item => {
+      const dataAttr = item.numValue !== null ? ` data-count="${item.numValue}" data-unit="${item.unit}"` : '';
+      return `<div class="front-stat">
+        <div class="front-stat-value"${dataAttr}>${item.value}</div>
         <div class="front-stat-label">${item.label}</div>
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
     
     return `<div class="front-stats" data-inline="true">${itemsHtml}</div>`;
   }

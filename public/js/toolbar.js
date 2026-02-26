@@ -53,4 +53,61 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
+
+  // 数字滚动动画
+  function animateCounter(element) {
+    const target = parseFloat(element.getAttribute('data-count'));
+    if (isNaN(target)) return;
+
+    const unit = element.getAttribute('data-unit') || '';
+    const duration = 1500;
+    const start = performance.now();
+
+    function update(currentTime) {
+      const elapsed = currentTime - start;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // 使用 ease-out 缓动函数
+      const easeOut = 1 - Math.pow(1 - progress, 3);
+      const current = target * easeOut;
+
+      if (target % 1 !== 0) {
+        // 小数，保留 1 位小数
+        element.textContent = current.toFixed(1) + unit;
+      } else {
+        // 整数
+        element.textContent = Math.floor(current) + unit;
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      } else {
+        // 确保最终值精确
+        element.textContent = target + unit;
+        element.classList.remove('counting');
+      }
+    }
+
+    element.classList.add('counting');
+    requestAnimationFrame(update);
+  }
+
+  // 页面加载后执行数字滚动动画
+  function initCounters() {
+    const counters = document.querySelectorAll('.front-stat-value[data-count]');
+    counters.forEach(counter => {
+      const unit = counter.getAttribute('data-unit') || '';
+      const target = parseFloat(counter.getAttribute('data-count'));
+      if (!isNaN(target)) {
+        counter.textContent = '0' + unit;
+        setTimeout(() => animateCounter(counter), 300);
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initCounters);
+  } else {
+    setTimeout(initCounters, 100);
+  }
 })();

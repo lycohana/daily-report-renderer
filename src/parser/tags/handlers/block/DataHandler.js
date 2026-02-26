@@ -44,12 +44,7 @@ class DataHandler extends BaseHandler {
   }
 
   getStyles() {
-    return `
-.front-stats{display:flex;gap:20px;flex-wrap:wrap;margin:16px 0;padding:20px;background:linear-gradient(135deg,#f8f9fa,#fff);border-radius:12px}
-.front-stat{flex:1;min-width:120px;text-align:center;padding:12px}
-.front-stat-value{font-size:1.6rem;font-weight:700;color:var(--accent-blue)}
-.front-stat-label{font-size:.78rem;color:var(--text-muted);margin-top:4px}
-    `.trim();
+    return ''; // 样式已移至 components.css
   }
 
   _parseDataBlock(dataContent) {

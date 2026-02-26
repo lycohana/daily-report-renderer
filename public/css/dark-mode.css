@@ -31,12 +31,6 @@ html[data-theme='dark'] .toc{
   background:#171e28
 }
 
-html[data-theme='dark'] .toolbar{
-  background:rgba(22,31,43,.82);
-  border-color:#34445a;
-  box-shadow:0 8px 22px rgba(0,0,0,.35)
-}
-
 html[data-theme='dark'] .toc-item{
   background:#1b2330;
   border-color:#2b3647
@@ -52,13 +46,13 @@ html[data-theme='dark'] .front-headline a:hover{
   color:var(--accent-red)
 }
 
-html[data-theme='dark'] .theme-toggle{
-  background:#1a2230;
-  border-color:#334258;
-  color:#d7e3f7
+html[data-theme='dark'] .toolbar{
+  background:rgba(22,31,43,.82);
+  border-color:#34445a;
+  box-shadow:0 8px 22px rgba(0,0,0,.35)
 }
 
-html[data-theme='dark'] .back-top-toggle{
+html[data-theme='dark'] .theme-toggle{
   background:#1a2230;
   border-color:#334258;
   color:#d7e3f7
@@ -67,6 +61,12 @@ html[data-theme='dark'] .back-top-toggle{
 html[data-theme='dark'] .theme-toggle:hover{
   border-color:var(--accent-blue);
   color:var(--accent-blue)
+}
+
+html[data-theme='dark'] .back-top-toggle{
+  background:#1a2230;
+  border-color:#334258;
+  color:#d7e3f7
 }
 
 html[data-theme='dark'] .back-top-toggle:hover{
