@@ -1,0 +1,208 @@
+html[data-theme='dark']{
+  --ink-black:#f3f3f3;
+  --paper-bg:#111418;
+  --accent-red:#ff6b7f;
+  --accent-blue:#8fb8ff;
+  --accent-gold:#e3c56b;
+  --accent-green:#6bbf8f;
+  --text-dark:#e8edf5;
+  --text-muted:#9ba8bc;
+  --border-color:#2c3442
+}
+
+html[data-theme='dark'] body{
+  background-image:linear-gradient(90deg,transparent 79px,#1a1f28 79px,#1a1f28 81px,transparent 81px),linear-gradient(#1a1f28 1px,transparent 1px)
+}
+
+html[data-theme='dark'] .container{
+  background:#151b24;
+  box-shadow:0 8px 40px rgba(0,0,0,.45)
+}
+
+html[data-theme='dark'] .masthead{
+  background:linear-gradient(180deg,#1a202a 0%,#151b24 100%)
+}
+
+html[data-theme='dark'] .front-page{
+  background:linear-gradient(135deg,#181f29 0%,#151b24 50%,#131922 100%)
+}
+
+html[data-theme='dark'] .toc{
+  background:#171e28
+}
+
+html[data-theme='dark'] .toolbar{
+  background:rgba(22,31,43,.82);
+  border-color:#34445a;
+  box-shadow:0 8px 22px rgba(0,0,0,.35)
+}
+
+html[data-theme='dark'] .toc-item{
+  background:#1b2330;
+  border-color:#2b3647
+}
+
+html[data-theme='dark'] .article-title a,
+html[data-theme='dark'] .front-headline a{
+  color:var(--ink-black)
+}
+
+html[data-theme='dark'] .theme-toggle{
+  background:#1a2230;
+  border-color:#334258;
+  color:#d7e3f7
+}
+
+html[data-theme='dark'] .theme-toggle:hover{
+  border-color:var(--accent-blue);
+  color:var(--accent-blue)
+}
+
+html[data-theme='dark'] .footer{
+  background:#0c1016;
+  color:#7f8ea6
+}
+
+html[data-theme='dark'] .footer a{
+  color:#aebbd1 !important
+}
+
+html[data-theme='dark'] .front-tag{
+  background:#2a3442;
+  color:#c9d5e8
+}
+
+html[data-theme='dark'] .article-tag{
+  background:#253246;
+  color:#c6d5ee
+}
+
+html[data-theme='dark'] .front-detail{
+  background:#1a2230;
+  color:var(--text-dark);
+  border-left-color:var(--accent-red);
+  box-shadow:0 2px 12px rgba(0,0,0,.28)
+}
+
+html[data-theme='dark'] .front-detail p{
+  border-bottom-color:#2a3445
+}
+
+html[data-theme='dark'] .front-detail blockquote{
+  border-left-color:#46566f
+}
+
+html[data-theme='dark'] .analysis-box{
+  background:#1b2432;
+  border-left-color:var(--accent-blue)
+}
+
+html[data-theme='dark'] .analysis-title{
+  color:#9ec1ff
+}
+
+html[data-theme='dark'] .analysis-content{
+  color:var(--text-dark)
+}
+
+html[data-theme='dark'] .thought-box{
+  background:linear-gradient(135deg,#2b2a1f,#232318);
+  border-color:#5a5537
+}
+
+html[data-theme='dark'] .thought-title{
+  color:#e8cf86
+}
+
+html[data-theme='dark'] .thought-content{
+  color:#e9e1c8
+}
+
+html[data-theme='dark'] .front-stats{
+  background:linear-gradient(135deg,#1a2535,#172130)
+}
+
+html[data-theme='dark'] .front-stat-value{
+  color:#9ec1ff
+}
+
+html[data-theme='dark'] .front-stat-label{
+  color:#aab8cc
+}
+
+html[data-theme='dark'] .weather-grid{
+  background:linear-gradient(135deg,#1a2a3a,#173047);
+  scrollbar-color:#4f79a6 #20354d
+}
+
+html[data-theme='dark'] .weather-item{
+  background:#1a2230;
+  box-shadow:0 2px 8px rgba(0,0,0,.3)
+}
+
+html[data-theme='dark'] .weather-item:hover,
+html[data-theme='dark'] .weather-grid.weather-fill .weather-item:hover{
+  box-shadow:0 4px 12px rgba(0,0,0,.4)
+}
+
+html[data-theme='dark'] .weather-city{
+  color:#9ec1ff
+}
+
+html[data-theme='dark'] .weather-condition{
+  color:#c7d1df
+}
+
+html[data-theme='dark'] .weather-temp{
+  color:#dbe6f7
+}
+
+html[data-theme='dark'] .weather-day{
+  color:#9fb0c9;
+  border-top-color:#33455d
+}
+
+html[data-theme='dark'] .weather-grid::-webkit-scrollbar-track{
+  background:#1e344a
+}
+
+html[data-theme='dark'] .weather-grid::-webkit-scrollbar-thumb{
+  background:linear-gradient(90deg,#496f98,#5b8bbf)
+}
+
+html[data-theme='dark'] .weather-grid::-webkit-scrollbar-thumb:hover{
+  background:linear-gradient(90deg,#5b8bbf,#6ca0d7)
+}
+
+html[data-theme='dark'] .notes-section{
+  background:#171e29;
+  border-top-color:#2f3b4c
+}
+
+html[data-theme='dark'] .note-card{
+  background:#1d2633;
+  box-shadow:0 2px 8px rgba(0,0,0,.28)
+}
+
+html[data-theme='dark'] .note-card-content{
+  color:#c4d0e2
+}
+
+html[data-theme='dark'] .note-card-content a{
+  color:#9ec1ff
+}
+
+html[data-theme='dark'] .article-desc a,
+html[data-theme='dark'] .front-summary a{
+  color:#a8c7ff
+}
+
+html[data-theme='dark'] .article{
+  border-bottom-color:#2c3747
+}
+
+html[data-theme='dark'] .progress-percent{
+  background:#1b2533;
+  color:#b8cdf1;
+  box-shadow:0 2px 8px rgba(0,0,0,.35)
+}

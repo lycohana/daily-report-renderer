@@ -487,6 +487,15 @@ npm run commitlint
 
 详细开发指南见 [docs/tags-dev-guide.md](docs/tags-dev-guide.md)
 
+#### 主题系统（浅色/暗黑）
+
+主题维护与新增组件适配规范见 [docs/theme-dev-guide.md](docs/theme-dev-guide.md)，包含：
+
+- `data-theme` 状态约定
+- 组件接入流程（默认样式 + dark 覆盖）
+- 标签处理器 `getStyles()` 的暗黑适配约束
+- UI 回归检查清单
+
 #### 文件监控
 
 [`src/fileWatcher.js`](src/fileWatcher.js) 使用 chokidar 监控文件变化：

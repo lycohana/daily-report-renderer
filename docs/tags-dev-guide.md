@@ -693,6 +693,17 @@ getStyles() {
 
 样式会自动被 `TagRegistry.collectStyles()` 收集，并通过 `getStylesHTML()` 注入到页面的 `<style>` 标签中。
 
+### 暗黑模式适配规范
+
+新增标签样式时，请同步遵守：
+
+1. `getStyles()` 中优先使用语义变量（如 `var(--text-dark)`、`var(--text-muted)`、`var(--accent-*)`）。
+2. 如果使用固定浅色背景（如 `#fff` 或浅色渐变），必须在 `public/css/dark-mode.css` 添加对应类覆盖。
+3. 类名保持稳定（例如 `.analysis-box`），避免后续 dark 覆盖失效。
+4. 提交前至少手动验证一次浅色/暗黑两种模式。
+
+完整规范见 [`docs/theme-dev-guide.md`](theme-dev-guide.md)。
+
 ---
 
 ## 完整示例
