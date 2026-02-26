@@ -26,9 +26,31 @@
 .front-stat-value.counting{
   opacity:.8
 }
-
 .front-stat-label{
   font-size:.78rem;
   color:var(--text-muted);
   margin-top:4px
 }
+
+/* Article Images - 限制图片大小 */
+.article-desc img,
+.front-summary img,
+.main-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 16px auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 响应式图片样式 */
+@media (max-width: 768px) {
+  .article-desc img,
+  .front-summary img,
+  .main-content img {
+    max-width: 100%;
+    margin: 12px auto;
+  }
+}
+
