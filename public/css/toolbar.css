@@ -72,11 +72,10 @@
   backdrop-filter:blur(6px);
   box-shadow:0 4px 14px rgba(0,0,0,.12);
   opacity:0;
-  visibility:hidden;
-  transform:scale(0.8);
+  transform:scale(0.8) translateY(10px);
   margin-top:-44px;
   pointer-events:none;
-  transition:opacity .2s ease,transform .24s ease,color .25s,margin .24s ease,visibility 0s linear .24s
+  transition:opacity .3s ease,transform .3s ease,margin .3s ease
 }
 
 .back-top-toggle:hover{
@@ -86,11 +85,9 @@
 
 .back-top-toggle.is-visible{
   opacity:1;
-  visibility:visible;
-  transform:scale(1);
+  transform:scale(1) translateY(0);
   margin-top:0;
-  pointer-events:auto;
-  transition-delay:.12s,.12s,0s,.12s,0s
+  pointer-events:auto
 }
 
 .back-top-toggle-icon{
@@ -133,11 +130,10 @@
     width:40px;
     height:40px;
     margin-top:-40px;
-    transition:opacity .2s ease,transform .24s ease,color .25s,margin .24s ease,visibility 0s linear .24s
+    transition:opacity .3s ease,transform .3s ease,margin .3s ease
   }
 
   .back-top-toggle.is-visible{
-    margin-top:0;
-    transition-delay:.12s,.12s,0s,.12s,0s
+    margin-top:0
   }
 }
