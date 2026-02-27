@@ -742,6 +742,50 @@ describe('AuthorHandler', () => {
 npm test -- AuthorHandler
 ```
 
+### E2E 测试
+
+项目使用 Playwright 进行端到端测试，确保标签功能的正确渲染。
+
+#### 运行 E2E 测试
+
+```bash
+# 运行所有 E2E 测试
+npm run test:e2e
+
+# 运行 E2E 测试 (UI 模式)
+npm run test:e2e:ui
+
+# 查看测试报告
+npm run test:e2e:report
+```
+
+#### E2E 测试覆盖
+
+| 测试文件 | 覆盖内容 |
+|----------|----------|
+| `tests/e2e/report-flow.test.js` | 日报渲染流程 |
+| `tests/e2e/theme-toggle.test.js` | 主题切换与标签样式 |
+| `tests/e2e/list-page.test.js` | 列表页标签展示 |
+| `tests/e2e/navigation.test.js` | 导航与标签跳转 |
+| `tests/e2e/responsive.test.js` | 响应式布局 |
+
+#### 标签相关 E2E 测试示例
+
+```javascript
+// tests/e2e/report-flow.test.js
+test('标签在日报中正确渲染', async ({ page }) => {
+  await page.goto('/report/2026-2-23');
+  
+  // 验证标签显示
+  const tag = page.locator('.tag:has-text("AI")');
+  await expect(tag).toBeVisible();
+  
+  // 验证章节标题
+  const sectionTitle = page.locator('.section-header h2:has-text("AI 热点")');
+  await expect(sectionTitle).toBeVisible();
+});
+```
+
 ---
 
 ## 样式

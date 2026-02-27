@@ -1,7 +1,7 @@
 # 日报渲染系统 API 文档
 
 **版本**: 1.0.0
-**最后更新**: 2026-02-26
+**最后更新**: 2026-02-27
 
 ## 概述
 
@@ -16,7 +16,7 @@
 | 💾 **缓存机制** | 内置内存缓存，提升响应速度 |
 | 🎨 **精美 UI** | 报纸风格设计，响应式布局 |
 | 🌗 **主题系统** | 浅色/暗黑双模式支持 |
-| 🧪 **完整测试** | Jest 单元测试 + 集成测试（261 个测试） |
+| 🧪 **完整测试** | Jest 单元测试（275 个）+ Playwright E2E 测试（31 个） |
 
 ### 技术栈
 
@@ -672,6 +672,64 @@ console.log(data.cache.hits / (data.cache.hits + data.cache.misses));
 ### CORS 配置
 
 如需跨域访问，可通过代理或配置 CORS 中间件实现。
+
+---
+
+## E2E 测试
+
+项目使用 [Playwright](https://playwright.dev/) 进行端到端测试，确保核心功能的正确性。
+
+### 测试统计
+
+| 类型 | 测试数量 |
+|------|----------|
+| 单元测试 | 275 |
+| E2E 测试 | 31 |
+| **总计** | **306** |
+
+### 测试文件
+
+| 文件 | 测试数量 | 描述 |
+|------|----------|------|
+| `tests/e2e/report-flow.test.js` | 5 | 日报流程测试 |
+| `tests/e2e/theme-toggle.test.js` | 5 | 主题切换测试 |
+| `tests/e2e/list-page.test.js` | 5 | 列表页测试 |
+| `tests/e2e/navigation.test.js` | 5 | 导航测试 |
+| `tests/e2e/responsive.test.js` | 11 | 响应式测试 |
+
+### 运行命令
+
+```bash
+# 运行 E2E 测试
+npm run test:e2e
+
+# 运行 E2E 测试 (UI 模式)
+npm run test:e2e:ui
+
+# 运行 E2E 测试 (有头模式)
+npm run test:e2e:headed
+
+# 查看测试报告
+npm run test:e2e:report
+```
+
+### 测试配置
+
+E2E 测试配置文件位于 `playwright.config.js`，主要配置项:
+
+| 配置项 | 值 | 描述 |
+|--------|-----|------|
+| testDir | `./tests/e2e` | 测试文件目录 |
+| timeout | 30000 | 测试超时时间(毫秒) |
+| projects | chromium | 仅使用 Chromium 浏览器 |
+
+### 报告生成
+
+测试报告默认生成在 `playwright-report/` 目录，可通过以下命令查看:
+
+```bash
+npx playwright show-report
+```
 
 ---
 

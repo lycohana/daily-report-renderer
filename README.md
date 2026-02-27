@@ -1,7 +1,7 @@
 # Daily Report Renderer
 
 **版本**: 1.0.0
-**最后更新**: 2026-02-26
+**最后更新**: 2026-02-27
 
 [![Node.js](https://img.shields.io/badge/Node.js-%3E%3D18.0-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.18-blue.svg)](https://expressjs.com/)
@@ -18,7 +18,7 @@
 | 💾 **缓存机制** | 内置内存缓存，提升响应速度 |
 | 🎨 **精美 UI** | 报纸风格设计，响应式布局 |
 | 🌗 **主题系统** | 浅色/暗黑双模式支持 |
-| 🧪 **完整测试** | Jest 单元测试 + 集成测试（261 个测试） |
+| 🧪 **完整测试** | Jest 单元测试（275 个）+ Playwright E2E 测试（31 个） |
 | ✅ **代码质量** | ESLint + Prettier + Commitlint |
 | 🔒 **安全模式** | 支持 HTML 白名单净化 |
 
@@ -29,6 +29,7 @@
 | [API 文档](docs/API.md) | 完整的 API 接口文档 |
 | [标签开发指南](docs/tags-dev-guide.md) | 自定义标签开发指南 |
 | [主题开发指南](docs/theme-dev-guide.md) | 主题系统开发指南 |
+| [E2E 测试指南](#e2e-测试) | 端到端测试说明 |
 
 ## 快速开始
 
@@ -376,10 +377,10 @@ render_mode: legacy
 
 ## 测试
 
-### 运行测试
+### 单元测试（Jest）
 
 ```bash
-# 运行所有测试
+# 运行所有单元测试
 npm test
 
 # 监听模式
@@ -390,6 +391,22 @@ npm run test:coverage
 
 # CI 模式
 npm run test:ci
+```
+
+### E2E 测试（Playwright）
+
+```bash
+# 运行所有 E2E 测试
+npm run test:e2e
+
+# UI 模式（交互式界面）
+npm run test:e2e:ui
+
+# 有头模式（显示浏览器）
+npm run test:e2e:headed
+
+# 查看测试报告
+npm run test:e2e:report
 ```
 
 ### 测试覆盖
@@ -417,13 +434,22 @@ tests/parser/             ✓ 解析器子模块测试
 ├── stateMachine.test.js
 ├── renderers/htmlRenderer.test.js
 └── sanitizers.test.js
+
+tests/e2e/                ✓ E2E 测试（Playwright）
+├── report-flow.test.js   # 日报流程测试
+├── theme-toggle.test.js  # 主题切换测试
+├── list-page.test.js     # 列表页测试
+├── navigation.test.js    # 导航测试
+└── responsive.test.js    # 响应式设计测试
 ```
 
 ### 测试统计
 
-- **总测试数**: 261
-- **通过率**: 100%
-- **测试套件**: 29
+| 类型 | 测试套件 | 测试用例 | 通过率 |
+|------|----------|----------|--------|
+| 单元测试（Jest） | 32 | 275 | 100% |
+| E2E 测试（Playwright） | 5 | 31 | 100% |
+| **总计** | **37** | **306** | **100%** |
 
 ## 代码质量
 
