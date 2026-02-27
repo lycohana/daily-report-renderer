@@ -65,7 +65,8 @@
       "!src/server.js"
     ],
     "testMatch": [
-      "**/tests/**/*.test.js"
+      "**/tests/**/*.test.js",
+      "!**/tests/e2e/**/*.test.js"
     ],
     "verbose": true,
     "forceExit": true,
