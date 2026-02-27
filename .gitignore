@@ -2,3 +2,5 @@
 /coverage
 plans/*
 reports/*
+test-results/*
+playwright-report/*
