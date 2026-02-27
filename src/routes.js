@@ -192,6 +192,124 @@ router.get('/report/:filename', async (req, res) => {
   }
 });
 
+/**
+ * 树形结构默认路由 - 重定向到最新日报
+ */
+router.get('/tree', async (req, res) => {
+  try {
+    let latestReport = cache.getLatestReport();
+
+    // 如果缓存中没有，则扫描目录获取最新日报
+    if (!latestReport) {
+      const reports = await fileWatcher.scanDirectory(config.watchDir);
+      if (reports.length === 0) {
+        return res.status(404).render('error', {
+          title: '暂无日报',
+          message: '目前没有可用的日报数据',
+          code: 'NO_REPORTS'
+        });
+      }
+      const latest = reports[0];
+      const content = await fs.readFile(path.join(config.watchDir, latest.filename), 'utf-8');
+      const parsed = markdownParser.parseMarkdown(content);
+      const renderMode = resolveRenderMode(parsed.frontMatter);
+      const fileInfo = { basename: latest.basename, filename: latest.filename, date: latest.date };
+      latestReport = buildReportData(parsed, fileInfo, renderMode);
+    }
+
+    // 提取日期部分（从 basename 如 2026-02-26.md）
+    const date = latestReport.filename.replace('.md', '');
+    return res.redirect(`/tree/${date}`);
+  } catch (error) {
+    console.error('Tree default route error:', error);
+    return res.status(500).render('error', {
+      title: '服务器错误',
+      message: '无法获取最新日报',
+      code: 'SERVER_ERROR'
+    });
+  }
+});
+
+/**
+ * 树形结构视图路由
+ * 展示指定日期文章的树形结构和元数据（不含具体内容）
+ */
+router.get('/tree/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    
+    // 验证日期格式 YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(date)) {
+      return res.status(400).render('error', {
+        title: '日期格式错误',
+        message: '请使用 YYYY-MM-DD 格式，如 2026-06-26',
+        code: 'INVALID_DATE_FORMAT'
+      });
+    }
+    
+    const sanitizedDate = path.basename(date);
+    const mdFilePath = path.join(config.watchDir, `${sanitizedDate}.md`);
+    
+    try {
+      await fs.access(mdFilePath);
+    } catch {
+      return res.status(404).render('error', {
+        title: '文件未找到',
+        message: `找不到指定日期的日报文件：${sanitizedDate}.md`,
+        code: 'FILE_NOT_FOUND'
+      });
+    }
+    
+    const content = await fs.readFile(mdFilePath, 'utf-8');
+    const parsed = markdownParser.parseMarkdown(content);
+    
+    // 构建简化后的树形数据（不含具体内容）
+    const treeData = {
+      frontMatter: parsed.frontMatter,
+      title: markdownParser.extractTitleFromFrontMatter(parsed.frontMatter, sanitizedDate),
+      edition: markdownParser.extractEditionFromFrontMatter(parsed.frontMatter, sanitizedDate),
+      headSection: parsed.headSection ? {
+        title: parsed.headSection.title,
+        tags: parsed.headSection.tags,
+        from: parsed.headSection.from,
+        fromStr: parsed.headSection.fromStr,
+        summary: parsed.headSection.summary,
+        think: parsed.headSection.think
+      } : null,
+      sections: parsed.sections.map(section => ({
+        title: section.title,
+        icon: section.icon,
+        intro: section.intro,
+        tags: section.tags,
+        summary: section.summary,
+        think: section.think,
+        articles: section.articles.map(article => ({
+          title: article.title,
+          from: article.from,
+          fromStr: article.fromStr,
+          tags: article.tags,
+          summary: article.summary,
+          think: article.think
+        }))
+      }))
+    };
+    
+    res.render('tree', {
+      ...treeData,
+      date: sanitizedDate,
+      stylesHtml: tagsIndex.getStylesHTML()
+    });
+  } catch (error) {
+    console.error('Error loading tree:', error);
+    res.status(500).render('error', {
+      title: '加载失败',
+      message: '无法加载树形结构，请稍后重试。',
+      code: 'LOAD_ERROR'
+    });
+  }
+});
+
 router.get('/health', (req, res) => {
   res.json({
     status: 'ok',

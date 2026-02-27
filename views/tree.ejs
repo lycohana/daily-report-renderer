@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <title><%= title %> - 树形结构</title>
+  <script>
+    (() => {
+      try {
+        const saved = localStorage.getItem('daily-theme');
+        const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (_) {}
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <%- stylesHtml || '' %>
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/toolbar.css">
+  <link rel="stylesheet" href="/css/dark-mode.css">
+  <style>
+    :root{--ink-black:#1a1a1a;--paper-bg:#f5f2eb;--accent-red:#c41e3a;--accent-blue:#1e3a5f;--accent-gold:#b8860b;--accent-green:#2d5a27;--text-dark:#2c2c2c;--text-muted:#666;--border-color:#d4d0c8}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth;overflow-x:hidden}
+    body{font-family:'Noto Sans SC','Noto Serif SC',serif;background:var(--paper-bg);color:var(--text-dark);line-height:1.8;padding:30px 20px 60px;background-image:linear-gradient(90deg,transparent 79px,#e5e2db 79px,#e5e2db 81px,transparent 81px),linear-gradient(#e5e2db 1px,transparent 1px);background-size:100% 28px;overflow-x:hidden}
+    .container{max-width:900px;margin:0 auto;background:#fff;box-shadow:0 6px 40px rgba(0,0,0,.12);position:relative;z-index:1}
+    .masthead{padding:32px 40px;text-align:center;border-bottom:4px solid var(--ink-black);background:linear-gradient(180deg,#faf9f6 0%,#fff 100%);position:relative}
+    .masthead h1{font-family:'Noto Serif SC',serif;font-size:2.8rem;font-weight:900;letter-spacing:12px;margin-bottom:10px;color:var(--ink-black)}
+    .masthead .meta{display:flex;justify-content:center;gap:28px;font-size:.85rem;color:var(--text-muted);flex-wrap:wrap}
+    .edition{font-weight:600;color:var(--accent-red)}
+    .tree-container{padding:34px 40px}
+    .tree-section{margin-bottom:24px}
+    .tree-node{border:1px solid var(--border-color);border-radius:8px;margin-bottom:12px;overflow:hidden}
+    .tree-node-header{padding:14px 18px;background:#faf9f7;cursor:pointer;display:flex;align-items:center;gap:12px;transition:all .2s}
+    .tree-node-header:hover{background:#f0eee9}
+    .tree-node-icon{font-size:1.2rem}
+    .tree-node-title{font-family:'Noto Serif SC',serif;font-size:1rem;font-weight:600;color:var(--ink-black);flex:1}
+    .tree-node-toggle{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:transform .3s}
+    .tree-node-toggle.expanded{transform:rotate(90deg)}
+    .tree-node-content{display:none;padding:16px 18px;border-top:1px solid var(--border-color)}
+    .tree-node-content.show{display:block}
+    .tree-meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+    .tree-tag{display:inline-block;padding:2px 8px;background:var(--accent-blue);color:#fff;border-radius:4px;font-size:.75rem}
+    .tree-source{font-size:.8rem;color:var(--accent-blue)}
+    .tree-source a{color:var(--accent-blue);text-decoration:none}
+    .tree-source a:hover{text-decoration:underline}
+    .tree-summary{font-size:.9rem;color:var(--text-muted);margin-top:12px;padding-left:12px;border-left:3px solid var(--accent-gold)}
+    .tree-think{font-size:.9rem;color:var(--accent-green);margin-top:12px;padding:12px;background:#f0f7ed;border-radius:4px}
+    .tree-children{margin-left:24px;margin-top:12px}
+    .tree-article{border-left:2px solid var(--border-color);padding-left:16px;margin-bottom:12px}
+    .tree-article:last-child{margin-bottom:0}
+    .tree-article-title{font-weight:600;font-size:.95rem;color:var(--ink-black);margin-bottom:8px}
+    .tree-article-title a{color:var(--ink-black);text-decoration:none;transition:color .3s}
+    .tree-article-title a:hover{color:var(--accent-red)}
+    .tree-article-meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+    .tree-article-tag{display:inline-block;padding:1px 6px;background:#e8e5df;color:var(--text-muted);border-radius:3px;font-size:.7rem}
+    .footer{text-align:center;padding:24px;background:var(--ink-black);color:#999;font-size:.78rem}
+    .footer p{margin-bottom:5px}
+    @media(max-width:768px){.masthead,.tree-container{padding:20px}.masthead h1{font-size:2rem;letter-spacing:6px}.tree-children{margin-left:12px}.back-nav{left:10px;top:10px}}
+  </style>
+</head>
+<body>
+  <%- include('partials/back-nav') %>
+  <div class="container">
+    <header class="masthead">
+      <h1>TREE</h1>
+      <div class="meta">
+        <span class="edition">第 <%= edition %> 期</span>
+        <% if (frontMatter && frontMatter.date) { %>
+        <span><%= frontMatter.date %></span>
+        <% } %>
+        <% if (frontMatter && frontMatter.weather) { %>
+        <span><%= frontMatter.weather %></span>
+        <% } %>
+        <% if (frontMatter && frontMatter.read_time) { %>
+        <span><%= frontMatter.read_time %></span>
+        <% } %>
+      </div>
+    </header>
+
+    <div class="tree-container">
+
+      <% if (headSection) { %>
+      <div class="tree-section">
+        <div class="tree-node">
+          <div class="tree-node-header" onclick="toggleNode(this)">
+            <span class="tree-node-icon">📰</span>
+            <span class="tree-node-title">头版头条</span>
+            <span class="tree-node-toggle">▶</span>
+          </div>
+          <div class="tree-node-content">
+            <div class="tree-article-title">
+              <% if (headSection.from) { %>
+              <a href="<%= headSection.from %>" target="_blank"><%= headSection.title %></a>
+              <% } else { %>
+              <%= headSection.title %>
+              <% } %>
+            </div>
+            <% if (headSection.tags && headSection.tags.length > 0) { %>
+            <div class="tree-meta">
+              <% headSection.tags.forEach(tag => { %>
+              <span class="tree-tag"><%= tag %></span>
+              <% }); %>
+            </div>
+            <% } %>
+            <% if (headSection.from) { %>
+            <div class="tree-source">来源：<a href="<%= headSection.from %>" target="_blank"><%= headSection.fromStr || headSection.from %></a></div>
+            <% } %>
+            <% if (headSection.summary) { %>
+            <div class="tree-summary"><%= headSection.summary %></div>
+            <% } %>
+            <% if (headSection.think) { %>
+            <div class="tree-think">💡 <%= headSection.think %></div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <% } %>
+
+      <% if (sections && sections.length > 0) { %>
+        <% sections.forEach((section, index) => { %>
+        <div class="tree-section">
+          <div class="tree-node">
+            <div class="tree-node-header" onclick="toggleNode(this)">
+              <span class="tree-node-icon"><%= section.icon || '📁' %></span>
+              <span class="tree-node-title"><%= section.title %></span>
+              <span class="tree-node-toggle">▶</span>
+            </div>
+            <div class="tree-node-content">
+              <% if (section.intro) { %>
+              <div class="tree-summary"><%= section.intro %></div>
+              <% } %>
+              
+              <% if (section.tags && section.tags.length > 0) { %>
+              <div class="tree-meta" style="margin-top: 12px;">
+                <% section.tags.forEach(tag => { %>
+                <span class="tree-tag"><%= tag %></span>
+                <% }); %>
+              </div>
+              <% } %>
+
+              <% if (section.articles && section.articles.length > 0) { %>
+              <div class="tree-children">
+                <% section.articles.forEach(article => { %>
+                <div class="tree-article">
+                  <div class="tree-article-title">
+                    <% if (article.from) { %>
+                    <a href="<%= article.from %>" target="_blank"><%= article.title %></a>
+                    <% } else { %>
+                    <%= article.title %>
+                    <% } %>
+                  </div>
+                  <% if (article.tags && article.tags.length > 0) { %>
+                  <div class="tree-article-meta">
+                    <% article.tags.forEach(tag => { %>
+                    <span class="tree-article-tag"><%= tag %></span>
+                    <% }); %>
+                  </div>
+                  <% } %>
+                  <% if (article.from) { %>
+                  <div class="tree-source">来源：<a href="<%= article.from %>" target="_blank"><%= article.fromStr || article.from %></a></div>
+                  <% } %>
+                  <% if (article.summary) { %>
+                  <div class="tree-summary"><%= article.summary %></div>
+                  <% } %>
+                  <% if (article.think) { %>
+                  <div class="tree-think">💡 <%= article.think %></div>
+                  <% } %>
+                </div>
+                <% }); %>
+              </div>
+              <% } %>
+
+              <% if (section.summary) { %>
+              <div class="tree-summary" style="margin-top: 16px;"><strong>章节总结：</strong><%= section.summary %></div>
+              <% } %>
+              <% if (section.think) { %>
+              <div class="tree-think" style="margin-top: 12px;"><strong>章节思考：</strong><%= section.think %></div>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      <% } %>
+    </div>
+
+    <footer class="footer">
+      <% if (frontMatter && frontMatter.form) { %>
+      <p>来源：<%= frontMatter.form %></p>
+      <% } %>
+      <p>每日日报 - 自动化生成</p>
+      <p>&copy; <%= new Date().getFullYear() %> Daily Report</p>
+    </footer>
+  </div>
+
+  <%- include('partials/toolbar') %>
+
+  <script>
+    function toggleNode(header) {
+      const content = header.nextElementSibling;
+      const toggle = header.querySelector('.tree-node-toggle');
+      const isExpanded = content.classList.contains('show');
+      
+      if (isExpanded) {
+        content.classList.remove('show');
+        toggle.classList.remove('expanded');
+      } else {
+        content.classList.add('show');
+        toggle.classList.add('expanded');
+      }
+    }
+
+    // 默认展开所有节点
+    document.addEventListener('DOMContentLoaded', function() {
+      const allNodes = document.querySelectorAll('.tree-node-header');
+      allNodes.forEach(node => {
+        const content = node.nextElementSibling;
+        const toggle = node.querySelector('.tree-node-toggle');
+        if (!content.classList.contains('show')) {
+          content.classList.add('show');
+          toggle.classList.add('expanded');
+        }
+      });
+    });
+  </script>
+  <script src="/js/toolbar.js"></script>
+</body>
+</html>

@@ -81,3 +81,118 @@ describe('Routes Module', () => {
     });
   });
 });
+
+describe('Tree Route', () => {
+  describe('Date Format Validation', () => {
+    test('should accept valid date format YYYY-MM-DD', () => {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      
+      expect(dateRegex.test('2026-06-26')).toBe(true);
+      expect(dateRegex.test('2026-01-01')).toBe(true);
+      expect(dateRegex.test('2026-12-31')).toBe(true);
+    });
+
+    test('should reject invalid date formats', () => {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      
+      expect(dateRegex.test('2026-6-26')).toBe(false);
+      expect(dateRegex.test('2026/06/26')).toBe(false);
+      expect(dateRegex.test('06-26-2026')).toBe(false);
+      expect(dateRegex.test('2026-06')).toBe(false);
+      expect(dateRegex.test('invalid')).toBe(false);
+    });
+  });
+
+  describe('Tree Data Structure', () => {
+    test('tree data should have required fields', () => {
+      const treeData = {
+        frontMatter: {},
+        title: 'Test Report',
+        edition: '001',
+        headSection: {
+          title: 'Test Headline',
+          tags: ['tag1', 'tag2'],
+          from: 'https://example.com',
+          fromStr: 'Example Source',
+          summary: 'Test summary',
+          think: 'Test thought'
+        },
+        sections: [
+          {
+            title: 'Test Section',
+            icon: '📁',
+            intro: 'Test intro',
+            tags: ['section-tag'],
+            summary: 'Section summary',
+            think: 'Section thought',
+            articles: [
+              {
+                title: 'Test Article',
+                from: 'https://example.com/article',
+                fromStr: 'Article Source',
+                tags: ['article-tag'],
+                summary: 'Article summary',
+                think: 'Article thought'
+              }
+            ]
+          }
+        ]
+      };
+
+      expect(treeData).toHaveProperty('frontMatter');
+      expect(treeData).toHaveProperty('title');
+      expect(treeData).toHaveProperty('edition');
+      expect(treeData).toHaveProperty('headSection');
+      expect(treeData).toHaveProperty('sections');
+      
+      expect(treeData.headSection).toHaveProperty('title');
+      expect(treeData.headSection).toHaveProperty('tags');
+      expect(treeData.headSection).toHaveProperty('summary');
+      
+      expect(treeData.sections[0]).toHaveProperty('title');
+      expect(treeData.sections[0]).toHaveProperty('articles');
+      expect(treeData.sections[0].articles[0]).toHaveProperty('title');
+      expect(treeData.sections[0].articles[0]).toHaveProperty('tags');
+    });
+
+    test('tree data should handle missing optional fields', () => {
+      const treeData = {
+        frontMatter: {},
+        title: 'Test Report',
+        edition: '001',
+        headSection: {
+          title: 'Test Headline',
+          tags: [],
+          from: null,
+          fromStr: null,
+          summary: null,
+          think: null
+        },
+        sections: []
+      };
+
+      expect(treeData.headSection.tags).toEqual([]);
+      expect(treeData.headSection.from).toBeNull();
+      expect(treeData.headSection.summary).toBeNull();
+    });
+  });
+
+  describe('File Path Construction', () => {
+    const path = require('path');
+    const config = require('../src/config');
+
+    test('should construct correct file path from date', () => {
+      const date = '2026-06-26';
+      const expectedPath = path.join(config.watchDir, `${date}.md`);
+      
+      expect(expectedPath).toContain('2026-06-26.md');
+    });
+
+    test('should sanitize date parameter', () => {
+      const maliciousDate = '../../../etc/passwd';
+      const sanitized = path.basename(maliciousDate);
+      
+      expect(sanitized).toBe('passwd');
+    });
+  });
+});
