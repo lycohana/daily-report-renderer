@@ -19,6 +19,10 @@ jest.mock('../src/fileWatcher', () => ({
 
 const cache = require('../src/cache');
 const fileWatcher = require('../src/fileWatcher');
+const express = require('express');
+const request = require('supertest');
+const fs = require('fs').promises;
+const routes = require('../src/routes');
 
 describe('Routes Module', () => {
   beforeEach(() => {
@@ -194,5 +198,51 @@ describe('Tree Route', () => {
       
       expect(sanitized).toBe('passwd');
     });
+  });
+});
+
+describe('Download Routes', () => {
+  let app;
+
+  beforeEach(() => {
+    app = express();
+    app.response.render = function renderMock(view, options) {
+      return this.status(this.statusCode || 200).json({ view, ...options });
+    };
+    app.use('/', routes);
+    jest.clearAllMocks();
+  });
+
+  test('GET /download should download latest markdown file', async () => {
+    fileWatcher.scanDirectory.mockResolvedValue([
+      { filename: '2026-02-28.md', basename: '2026-02-28', sortKey: '20260228' }
+    ]);
+    jest.spyOn(fs, 'access').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'readFile').mockResolvedValue('# latest report');
+
+    const res = await request(app).get('/download');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-type']).toContain('text/markdown');
+    expect(res.headers['content-disposition']).toContain('attachment; filename="2026-02-28.md"');
+    expect(res.text).toBe('# latest report');
+  });
+
+  test('GET /download/:date should download specified markdown file', async () => {
+    jest.spyOn(fs, 'access').mockResolvedValue(undefined);
+    jest.spyOn(fs, 'readFile').mockResolvedValue('# history report');
+
+    const res = await request(app).get('/download/2026-02-20');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['content-disposition']).toContain('attachment; filename="2026-02-20.md"');
+    expect(res.text).toBe('# history report');
+  });
+
+  test('GET /download/:date should reject invalid date format', async () => {
+    const res = await request(app).get('/download/2026-2-20');
+
+    expect(res.status).toBe(400);
+    expect(res.body.code).toBe('INVALID_DATE_FORMAT');
   });
 });

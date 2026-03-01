@@ -55,6 +55,27 @@ function buildReportData(parsed, fileInfo, renderMode) {
   };
 }
 
+async function downloadMarkdown(res, reportName) {
+  const sanitizedName = path.basename(reportName);
+  const mdFilePath = path.join(config.watchDir, `${sanitizedName}.md`);
+
+  try {
+    await fs.access(mdFilePath);
+  } catch {
+    return res.status(404).render('error', {
+      title: '文件未找到',
+      message: `找不到指定的日报文件：${sanitizedName}.md`,
+      code: 'FILE_NOT_FOUND'
+    });
+  }
+
+  const content = await fs.readFile(mdFilePath, 'utf-8');
+
+  res.setHeader('Content-Type', 'text/markdown; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="${sanitizedName}.md"`);
+  return res.send(content);
+}
+
 router.get('/', async (req, res) => {
   try {
     const latestReport = cache.getLatestReport();
@@ -146,6 +167,54 @@ router.get('/list', async (req, res) => {
     res.status(500).render('error', {
       title: '加载失败',
       message: '无法加载日报列表，请稍后重试。',
+      code: 'LOAD_ERROR'
+    });
+  }
+});
+
+router.get('/download', async (req, res) => {
+  try {
+    const reports = await fileWatcher.scanDirectory(config.watchDir);
+
+    if (reports.length === 0) {
+      return res.status(404).render('error', {
+        title: '暂无日报',
+        message: '暂无可下载的日报内容，请等待或手动添加 Markdown 文件。',
+        code: 'NO_REPORTS'
+      });
+    }
+
+    const latest = reports[0];
+    return downloadMarkdown(res, latest.basename || path.basename(latest.filename, '.md'));
+  } catch (error) {
+    console.error('Error downloading latest report:', error);
+    return res.status(500).render('error', {
+      title: '下载失败',
+      message: '无法下载最新日报，请稍后重试。',
+      code: 'LOAD_ERROR'
+    });
+  }
+});
+
+router.get('/download/:date', async (req, res) => {
+  try {
+    const { date } = req.params;
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    if (!dateRegex.test(date)) {
+      return res.status(400).render('error', {
+        title: '日期格式错误',
+        message: '请使用 YYYY-MM-DD 格式，如 2026-06-26',
+        code: 'INVALID_DATE_FORMAT'
+      });
+    }
+
+    return downloadMarkdown(res, date);
+  } catch (error) {
+    console.error('Error downloading report:', error);
+    return res.status(500).render('error', {
+      title: '下载失败',
+      message: '无法下载指定日报，请稍后重试。',
       code: 'LOAD_ERROR'
     });
   }
