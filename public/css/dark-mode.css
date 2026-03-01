@@ -146,39 +146,61 @@ html[data-theme='dark'] .front-stat-label{
 }
 
 html[data-theme='dark'] .weather-grid{
-  background:linear-gradient(135deg,#1a2a3a,#173047);
-  scrollbar-color:#4f79a6 #20354d
+  background:linear-gradient(145deg,#18293a,#173249 55%,#1a3b57);
+  border-color:rgba(114,149,197,.2);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 8px 24px rgba(0,0,0,.25);
+  scrollbar-color:#567ea9 #20364d
 }
 
 html[data-theme='dark'] .weather-item{
-  background:#1a2230;
-  box-shadow:0 2px 8px rgba(0,0,0,.3)
+  background:linear-gradient(180deg,#1a2432,#172231);
+  border-color:rgba(121,151,194,.22);
+  box-shadow:0 6px 16px rgba(0,0,0,.32)
 }
 
 html[data-theme='dark'] .weather-item:hover,
 html[data-theme='dark'] .weather-grid.weather-fill .weather-item:hover{
-  box-shadow:0 4px 12px rgba(0,0,0,.4)
+  border-color:rgba(131,173,226,.45);
+  box-shadow:0 10px 22px rgba(0,0,0,.4)
+}
+
+html[data-theme='dark'] .weather-day{
+  color:#b9d2ef;
+  background:rgba(95,132,178,.22);
+  border-color:rgba(114,157,212,.38)
 }
 
 html[data-theme='dark'] .weather-city{
-  color:#9ec1ff
+  color:#d7e8ff
+}
+
+html[data-theme='dark'] .weather-icon-wrap{
+  background:linear-gradient(145deg,#1d2b3d,#1a2637);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 2px 6px rgba(0,0,0,.35)
 }
 
 html[data-theme='dark'] .weather-condition{
-  color:#c7d1df
+  color:#c8d8ec
 }
 
 html[data-theme='dark'] .weather-temp{
   color:#dbe6f7
 }
 
-html[data-theme='dark'] .weather-day{
-  color:#9fb0c9;
-  border-top-color:#33455d
+html[data-theme='dark'] .weather-temp-high{
+  color:#ff9a8d
+}
+
+html[data-theme='dark'] .weather-temp-divider{
+  color:#90a9c7
+}
+
+html[data-theme='dark'] .weather-temp-low{
+  color:#9cc8ff
 }
 
 html[data-theme='dark'] .weather-grid::-webkit-scrollbar-track{
-  background:#1e344a
+  background:#1d3349
 }
 
 html[data-theme='dark'] .weather-grid::-webkit-scrollbar-thumb{

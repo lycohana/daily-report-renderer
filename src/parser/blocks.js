@@ -100,18 +100,28 @@ function renderWeatherBlock(weatherContent, isCenter = false) {
   
   if (items.length > 0) {
     const centerClass = isCenter ? ' weather-center' : '';
-    // 当卡片数量少于 5 个时，使用 weather-fill 类让卡片自适应填满容器
-    const fillClass = items.length < 5 ? ' weather-fill' : '';
+    // 当卡片数量不超过 5 个时，使用 weather-fill 类让卡片自适应填满容器
+    const fillClass = items.length <= 5 ? ' weather-fill' : '';
     const itemsHtml = items.map(item => {
+      const tempParts = item.temp.split('/').map(part => part.trim()).filter(Boolean);
+      const highTemp = tempParts[0] || item.temp;
+      const lowTemp = tempParts[1] || '';
       const cityHtml = item.city
         ? `<div class="weather-city">${item.city}</div>`
         : '<div class="weather-city weather-city-placeholder">-</div>';
+
+      const tempHtml = lowTemp
+        ? `<div class="weather-temp" data-raw-temp="${item.temp}"><div class="weather-temp-high">${highTemp}</div><div class="weather-temp-divider">/</div><div class="weather-temp-low">${lowTemp}</div></div>`
+        : `<div class="weather-temp" data-raw-temp="${item.temp}"><div class="weather-temp-high">${highTemp}</div></div>`;
+
       return `<div class="weather-item">
-        <div class="weather-icon">${item.icon}</div>
-        ${cityHtml}
+        <div class="weather-item-top">
+          <div class="weather-day">${item.day}</div>
+          ${cityHtml}
+        </div>
+        <div class="weather-icon-wrap"><div class="weather-icon">${item.icon}</div></div>
         <div class="weather-condition">${item.condition}</div>
-        <div class="weather-temp">${item.temp}</div>
-        <div class="weather-day">${item.day}</div>
+        ${tempHtml}
       </div>`;
     }).join('');
     

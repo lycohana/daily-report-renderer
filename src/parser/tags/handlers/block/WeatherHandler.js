@@ -45,23 +45,29 @@ class WeatherHandler extends BaseHandler {
 
   getStyles() {
     return `
-.weather-grid{display:flex;gap:12px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;padding:16px;background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-radius:12px;margin:16px 0;scrollbar-width:thin;scrollbar-color:#90caf9 #e3f2fd}
+.weather-grid{display:flex;gap:14px;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;justify-content:flex-start;padding:18px;background:linear-gradient(145deg,#eaf4ff,#d5e9ff 55%,#c8e1fb);border:1px solid rgba(30,58,95,.1);border-radius:16px;margin:18px 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 8px 24px rgba(30,58,95,.08);scrollbar-width:thin;scrollbar-color:#7ca8d9 #d6e8fb}
 .weather-grid.weather-center{justify-content:center}
 .weather-grid.weather-fill{justify-content:flex-start}
-.weather-grid.weather-fill .weather-item{flex:1 1 0;min-width:100px;max-width:none}
-.weather-item{flex:0 0 auto;min-width:110px;max-width:130px;background:#fff;border-radius:12px;padding:14px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.1);transition:transform .2s ease,box-shadow .2s ease}
-.weather-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.weather-grid.weather-fill .weather-item:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.weather-icon{font-size:2rem;margin-bottom:4px}
-.weather-city{font-weight:600;color:#1565c0;font-size:.9rem}
+.weather-grid.weather-fill .weather-item{flex:1 1 0;min-width:0;max-width:none}
+.weather-item{position:relative;flex:0 0 auto;min-width:128px;max-width:168px;background:linear-gradient(180deg,#fff,#f7fbff);border:1px solid rgba(73,107,157,.16);border-radius:14px;padding:12px 12px 14px;box-shadow:0 6px 16px rgba(33,66,112,.1);transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease}
+.weather-item:hover{transform:translateY(-3px);border-color:rgba(44,92,160,.34);box-shadow:0 10px 20px rgba(33,66,112,.16)}
+.weather-grid.weather-fill .weather-item:hover{transform:translateY(-3px)}
+.weather-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.weather-day{font-size:.74rem;color:#436088;background:rgba(97,140,199,.13);border:1px solid rgba(97,140,199,.24);border-radius:999px;padding:1px 8px}
+.weather-city{font-weight:700;color:#1f4f88;font-size:.82rem;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .weather-city-placeholder{visibility:hidden}
-.weather-condition{color:#757575;font-size:.85rem}
-.weather-temp{color:#424242;font-size:.85rem;margin-top:4px}
-.weather-day{font-size:.75rem;color:#9e9e9e;margin-top:8px;padding-top:8px;border-top:1px dashed #e0e0e0}
+.weather-icon-wrap{display:flex;justify-content:center;align-items:center;width:48px;height:48px;margin:2px auto 6px;background:linear-gradient(145deg,#ffffff,#edf5ff);border-radius:50%;box-shadow:inset 0 1px 1px rgba(255,255,255,.85),0 2px 6px rgba(39,74,126,.14)}
+.weather-icon{font-size:1.8rem;line-height:1}
+.weather-condition{color:#415878;font-size:.86rem;font-weight:600;text-align:center}
+.weather-temp{display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:4px}
+.weather-temp-high{color:#d14e3d;font-size:1.02rem;font-weight:700}
+.weather-temp-divider{color:#8aa0be;font-size:.84rem}
+.weather-temp-low{color:#3e6ea8;font-size:.9rem;font-weight:600}
 .weather-grid::-webkit-scrollbar{height:6px}
-.weather-grid::-webkit-scrollbar-track{background:#e3f2fd;border-radius:3px}
-.weather-grid::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#90caf9,#64b5f6);border-radius:3px;transition:background .2s ease}
-.weather-grid::-webkit-scrollbar-thumb:hover{background:linear-gradient(90deg,#64b5f6,#42a5f5)}
+.weather-grid::-webkit-scrollbar-track{background:#dcecff;border-radius:3px}
+.weather-grid::-webkit-scrollbar-thumb{background:linear-gradient(90deg,#7ea8d7,#5c8fca);border-radius:3px;transition:background .2s ease}
+.weather-grid::-webkit-scrollbar-thumb:hover{background:linear-gradient(90deg,#6b9bd0,#4e83c2)}
+@media (max-width:768px){.weather-grid{padding:14px;gap:10px;border-radius:12px}.weather-item{min-width:112px;max-width:none;padding:10px 10px 12px}.weather-icon-wrap{width:42px;height:42px;margin-bottom:4px}.weather-icon{font-size:1.55rem}.weather-temp-high{font-size:.95rem}.weather-temp-low{font-size:.84rem}}
     `.trim();
   }
 
