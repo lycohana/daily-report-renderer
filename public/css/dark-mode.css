@@ -170,6 +170,14 @@ html[data-theme='dark'] .weather-day{
   border-color:rgba(114,157,212,.38)
 }
 
+html[data-theme='dark'] .weather-day-separator{
+  color:#8fb0d6
+}
+
+html[data-theme='dark'] .weather-date{
+  color:#deecff
+}
+
 html[data-theme='dark'] .weather-city{
   color:#d7e8ff
 }

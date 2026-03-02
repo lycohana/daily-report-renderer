@@ -4,11 +4,12 @@
  */
 
 const BaseHandler = require('../../BaseHandler');
+const { hasCenterAttribute, parseWeatherItems } = require('../../../weatherParser');
 
 class WeatherHandler extends BaseHandler {
   constructor() {
     super();
-    this.syntax = /<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g;
+    this.syntax = /<weather\b([^>]*)>([\s\S]*?)<\/weather>/gi;
   }
 
   getType() {
@@ -21,7 +22,7 @@ class WeatherHandler extends BaseHandler {
     this.syntax.lastIndex = 0;
 
     while ((match = this.syntax.exec(content)) !== null) {
-      const parsedData = this._parseWeatherData(match[0], match[1]);
+      const parsedData = this._parseWeatherData(match[1], match[2]);
       if (parsedData) {
         results.push({
           name: this.name,
@@ -53,7 +54,10 @@ class WeatherHandler extends BaseHandler {
 .weather-item:hover{transform:translateY(-3px);border-color:rgba(44,92,160,.34);box-shadow:0 10px 20px rgba(33,66,112,.16)}
 .weather-grid.weather-fill .weather-item:hover{transform:translateY(-3px)}
 .weather-item-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
-.weather-day{font-size:.74rem;color:#436088;background:rgba(97,140,199,.13);border:1px solid rgba(97,140,199,.24);border-radius:999px;padding:1px 8px}
+.weather-day{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;color:#436088;background:rgba(97,140,199,.13);border:1px solid rgba(97,140,199,.24);border-radius:999px;padding:1px 8px}
+.weather-weekday{font-weight:600}
+.weather-day-separator{font-size:.68rem;opacity:.58}
+.weather-date{font-weight:700;color:#214a7a}
 .weather-city{font-weight:700;color:#1f4f88;font-size:.82rem;max-width:58%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .weather-city-placeholder{visibility:hidden}
 .weather-icon-wrap{display:flex;justify-content:center;align-items:center;width:48px;height:48px;margin:2px auto 6px;background:linear-gradient(145deg,#ffffff,#edf5ff);border-radius:50%;box-shadow:inset 0 1px 1px rgba(255,255,255,.85),0 2px 6px rgba(39,74,126,.14)}
@@ -71,35 +75,9 @@ class WeatherHandler extends BaseHandler {
     `.trim();
   }
 
-  _parseWeatherData(fullMatch, content) {
-    const dayRegex = /<day>([^<]+)<\/day>/g;
-    const items = [];
-    const center = fullMatch.includes('center');
-    let m;
-
-    while ((m = dayRegex.exec(content)) !== null) {
-      const parts = m[1].split('|');
-      if (parts.length >= 4) {
-        let day, city, icon, condition, temp;
-        if (parts.length === 4) {
-          // 无城市：日期 | 图标 | 天气 | 温度
-          day = parts[0].trim();
-          city = null;
-          icon = parts[1].trim();
-          condition = parts[2].trim();
-          temp = parts[3].trim();
-        } else {
-          // 有城市：日期 | 城市 | 图标 | 天气 | 温度
-          day = parts[0].trim();
-          city = parts[1].trim();
-          icon = parts[2].trim();
-          condition = parts[3].trim();
-          temp = parts[4].trim();
-        }
-        items.push({ day, city, icon, condition, temp });
-      }
-    }
-
+  _parseWeatherData(attrs, content) {
+    const items = parseWeatherItems(content);
+    const center = hasCenterAttribute(attrs);
     return items.length > 0 ? { items, center } : null;
   }
 }
