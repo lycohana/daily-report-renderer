@@ -346,13 +346,20 @@ render_mode: legacy
 #### 天气块
 
 ```markdown
-<!-- 带城市名称（5 段格式） -->
+<!-- 推荐：属性语法（可与旧语法混写） -->
+<weather center>
+<day weekday="周二" date="3" icon="🌧️" weather="雨" temp="17/14" />
+<day weekday="周三" date="4" icon="☁️" weather="多云" temp="19 16" />
+<day weekday="周四" date="5" city="上海" icon="☀️" weather="晴" temp="24°C/15°C" />
+</weather>
+
+<!-- 兼容：带城市名称（5 段旧格式） -->
 <weather>
 <day>周一 | 东莞|☀️|晴|26°C/17°C</day>
 <day>周二 | 深圳|🌧️|雨|24°C/15°C</day>
 </weather>
 
-<!-- 不带城市名称（4 段格式，居中显示） -->
+<!-- 兼容：不带城市名称（4 段旧格式，居中显示） -->
 <weather center>
 <day>周一|☀️|晴|26°C/17°C</day>
 <day>周二|⛅|多云|25°C/16°C</day>
@@ -360,8 +367,13 @@ render_mode: legacy
 ```
 
 **格式说明：**
-- 带城市：`<day>星期 | 城市|emoji|天气 | 温度</day>`
-- 不带城市：`<day>星期|emoji|天气 | 温度</day>`
+- 推荐属性语法：`<day weekday="周几" date="日期" city="城市" icon="图标" weather="天气" temp="温度" />`
+- 兼容属性语法：`<day day="周二 3" city="城市" icon="图标" weather="天气" temp="温度" />`
+- 兼容旧语法（带城市）：`<day>星期 | 城市|emoji|天气 | 温度</day>`
+- 兼容旧语法（不带城市）：`<day>星期|emoji|天气 | 温度</day>`
+- 支持混写：同一个 `<weather>` 中可同时出现新旧语法
+- 温度会自动规范：`17/14`、`17 14`、`17°C/14°C` 会统一为 `17°C/14°C`；单值温度 `24` 会渲染为 `24°C`
+- 缺省补齐：缺 `icon` 会按 `weather` 自动映射；缺 `weather` 且有 `icon` 会反推，无法反推时为 `未知`
 - 可选属性：`center` - 居中显示
 
 ## API 接口

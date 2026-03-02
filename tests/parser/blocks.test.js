@@ -112,6 +112,49 @@ describe('Blocks Module', () => {
       expect(result).toContain('condition &amp; clear');
       expect(result).toContain('&quot;temp&quot;');
     });
+
+    test('should render weather block with day attribute syntax', () => {
+      const weatherContent = '<day day="周三 4" weather="多云" temp="19 16" />';
+      const result = renderWeatherBlock(weatherContent, false);
+
+      expect(result).toContain('weather-grid');
+      expect(result).toContain('>周三<');
+      expect(result).toContain('>4<');
+      expect(result).toContain('⛅');
+      expect(result).toContain('多云');
+      expect(result).toContain('19°C/16°C');
+    });
+
+    test('should render weather block with separate weekday/date/icon attributes', () => {
+      const weatherContent = '<day weekday="周二" date="3" icon="🌧️" weather="雨" temp="17/14" />';
+      const result = renderWeatherBlock(weatherContent, false);
+
+      expect(result).toContain('weather-weekday');
+      expect(result).toContain('weather-date');
+      expect(result).toContain('>周二<');
+      expect(result).toContain('>3<');
+      expect(result).toContain('🌧️');
+      expect(result).toContain('雨');
+      expect(result).toContain('17°C/14°C');
+    });
+
+    test('should render mixed day syntax in source order', () => {
+      const weatherContent = '<day day="周三 4" weather="雨" temp="17/14" /><day>周四|☀️|晴|24°C/15°C</day>';
+      const result = renderWeatherBlock(weatherContent, false);
+
+      expect(result).toContain('>周三<');
+      expect(result).toContain('>4<');
+      expect(result).toContain('>周四<');
+      expect(result.indexOf('>周三<')).toBeLessThan(result.indexOf('>周四<'));
+    });
+
+    test('should normalize single temperature from day attribute syntax', () => {
+      const weatherContent = '<day day="周四 5" icon="☀️" temp="24" />';
+      const result = renderWeatherBlock(weatherContent, false);
+
+      expect(result).toContain('24°C');
+      expect(result).not.toContain('weather-temp-divider');
+    });
   });
 
   describe('processDataBlocks', () => {
@@ -167,6 +210,16 @@ describe('Blocks Module', () => {
       const result = processWeatherBlocks(html);
       
       expect(result).toBe(html);
+    });
+
+    test('should process weather block with arbitrary attributes', () => {
+      const html = '<weather class="weekly" center data-x="1"><day day="周三 4" weather="雨" temp="17/14" /></weather>';
+      const result = processWeatherBlocks(html);
+
+      expect(result).toContain('weather-grid weather-center');
+      expect(result).toContain('>周三<');
+      expect(result).toContain('>4<');
+      expect(result).toContain('17°C/14°C');
     });
   });
 

@@ -7,6 +7,8 @@
  * 安全假设：Markdown 来源为本地受控编辑，但为防御性编程仍进行 HTML 转义
  */
 
+const { hasCenterAttribute, parseWeatherItems } = require('./weatherParser');
+
 /**
  * HTML 转义函数
  *
@@ -23,6 +25,39 @@ function escapeHtml(str) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+/**
+ * 将天气日期文案拆分为「星期」与「日期」
+ * 例如：周二 3 -> { weekday: '周二', date: '3' }
+ *
+ * @param {string} dayText - 原始日期文案
+ * @returns {{weekday: string, date: string}}
+ */
+function splitWeatherDay(dayText) {
+  const raw = String(dayText || '').trim();
+  if (!raw) {
+    return { weekday: '', date: '' };
+  }
+
+  const normalized = raw.replace(/\s+/g, ' ');
+  const weekFirstMatch = normalized.match(/^(今天|明天|后天|周[一二三四五六日天]|星期[一二三四五六日天])(?:\s*([0-9]{1,2}(?:日|号)?))?$/);
+  if (weekFirstMatch) {
+    return {
+      weekday: weekFirstMatch[1],
+      date: weekFirstMatch[2] || ''
+    };
+  }
+
+  const genericMatch = normalized.match(/^([^\d\s]+)\s*([0-9]{1,2}(?:日|号)?)$/);
+  if (genericMatch) {
+    return {
+      weekday: genericMatch[1],
+      date: genericMatch[2]
+    };
+  }
+
+  return { weekday: normalized, date: '' };
 }
 
 /**
@@ -72,43 +107,29 @@ function renderDataBlock(dataContent) {
  * @returns {string} 渲染后的 HTML，如果无有效数据则返回空字符串
  */
 function renderWeatherBlock(weatherContent, isCenter = false) {
-  const dayRegex = /<day>([\s\S]*?)<\/day>/g;
-  const items = [];
-  let m;
-  while ((m = dayRegex.exec(weatherContent)) !== null) {
-    const parts = m[1].split('|');
-    if (parts.length >= 4) {
-      let day, city, icon, condition, temp;
-      if (parts.length === 4) {
-        // 无城市：日期 | 图标 | 天气 | 温度
-        day = escapeHtml(parts[0].trim());
-        city = null;
-        icon = escapeHtml(parts[1].trim());
-        condition = escapeHtml(parts[2].trim());
-        temp = escapeHtml(parts[3].trim());
-      } else {
-        // 有城市：日期 | 城市 | 图标 | 天气 | 温度
-        day = escapeHtml(parts[0].trim());
-        city = escapeHtml(parts[1].trim());
-        icon = escapeHtml(parts[2].trim());
-        condition = escapeHtml(parts[3].trim());
-        temp = escapeHtml(parts[4].trim());
-      }
-      items.push({ day, city, icon, condition, temp });
-    }
-  }
+  const items = parseWeatherItems(weatherContent).map(item => ({
+    day: escapeHtml(item.day),
+    city: item.city ? escapeHtml(item.city) : null,
+    icon: escapeHtml(item.icon),
+    condition: escapeHtml(item.condition),
+    temp: escapeHtml(item.temp)
+  }));
   
   if (items.length > 0) {
     const centerClass = isCenter ? ' weather-center' : '';
     // 当卡片数量不超过 5 个时，使用 weather-fill 类让卡片自适应填满容器
     const fillClass = items.length <= 5 ? ' weather-fill' : '';
     const itemsHtml = items.map(item => {
+      const dayParts = splitWeatherDay(item.day);
       const tempParts = item.temp.split('/').map(part => part.trim()).filter(Boolean);
       const highTemp = tempParts[0] || item.temp;
       const lowTemp = tempParts[1] || '';
       const cityHtml = item.city
         ? `<div class="weather-city">${item.city}</div>`
         : '<div class="weather-city weather-city-placeholder">-</div>';
+      const dayHtml = dayParts.date
+        ? `<div class="weather-day"><span class="weather-weekday">${dayParts.weekday}</span><span class="weather-day-separator">·</span><span class="weather-date">${dayParts.date}</span></div>`
+        : `<div class="weather-day"><span class="weather-weekday">${dayParts.weekday}</span></div>`;
 
       const tempHtml = lowTemp
         ? `<div class="weather-temp" data-raw-temp="${item.temp}"><div class="weather-temp-high">${highTemp}</div><div class="weather-temp-divider">/</div><div class="weather-temp-low">${lowTemp}</div></div>`
@@ -116,7 +137,7 @@ function renderWeatherBlock(weatherContent, isCenter = false) {
 
       return `<div class="weather-item">
         <div class="weather-item-top">
-          <div class="weather-day">${item.day}</div>
+          ${dayHtml}
           ${cityHtml}
         </div>
         <div class="weather-icon-wrap"><div class="weather-icon">${item.icon}</div></div>
@@ -149,8 +170,8 @@ function processDataBlocks(html) {
  * @returns {string} 处理后的 HTML
  */
 function processWeatherBlocks(html) {
-  return html.replace(/<weather(?:\s+center)?>([\s\S]*?)<\/weather>/g, (match, weatherContent) => {
-    const isCenter = match.includes('center');
+  return html.replace(/<weather\b([^>]*)>([\s\S]*?)<\/weather>/gi, (match, attrs, weatherContent) => {
+    const isCenter = hasCenterAttribute(attrs);
     return renderWeatherBlock(weatherContent, isCenter);
   });
 }

@@ -82,6 +82,20 @@ read_time: 约 5 分钟
 </weather>
 `;
 
+  const sampleMarkdownWithWeatherAttributes = `---
+title: 2026-2-25
+weather: 东莞 · 雨 17°C/14°C
+read_time: 约 6 分钟
+---
+[head]: #
+# 天气预报属性语法测试
+
+<weather center data-type="weekly">
+<day day="周二 3" weather="雨" temp="17/14" />
+<day>周三|☁️|阴|19°C/16°C</day>
+</weather>
+`;
+
   describe('parseFrontMatter', () => {
     test('should parse front matter correctly', () => {
       const { frontMatter, content } = markdownParser.parseFrontMatter(sampleMarkdown);
@@ -317,6 +331,54 @@ title: Test
       expect(tags.weather[0].items[0].icon).toBe('☀️');
       expect(tags.weather[0].items[1].city).toBeNull();
       expect(tags.weather[0].items[1].day).toBe('周二');
+    });
+
+    test('should support weather day attribute syntax', () => {
+      const { tags } = markdownParser.extractCustomTags(sampleMarkdownWithWeatherAttributes);
+      expect(tags.weather).toBeDefined();
+      expect(tags.weather[0].center).toBe(true);
+      expect(tags.weather[0].items).toHaveLength(2);
+      expect(tags.weather[0].items[0]).toEqual({
+        day: '周二 3',
+        city: null,
+        icon: '🌧️',
+        condition: '雨',
+        temp: '17°C/14°C'
+      });
+      expect(tags.weather[0].items[1].day).toBe('周三');
+    });
+
+    test('should support separate weekday/date/icon attributes in weather day', () => {
+      const markdown = `---
+title: Test
+---
+<weather>
+<day weekday="周二" date="3" icon="🌧️" weather="雨" temp="17/14" />
+</weather>
+`;
+      const { tags } = markdownParser.extractCustomTags(markdown);
+      expect(tags.weather).toBeDefined();
+      expect(tags.weather[0].items[0]).toEqual({
+        day: '周二 3',
+        city: null,
+        icon: '🌧️',
+        condition: '雨',
+        temp: '17°C/14°C'
+      });
+    });
+
+    test('should normalize temperature formats from weather day attributes', () => {
+      const markdown = `---
+title: Test
+---
+<weather>
+<day day="周四 5" weather="晴" temp="24" />
+<day day="周五 6" weather="多云" temp="22 15" />
+</weather>
+`;
+      const { tags } = markdownParser.extractCustomTags(markdown);
+      expect(tags.weather[0].items[0].temp).toBe('24°C');
+      expect(tags.weather[0].items[1].temp).toBe('22°C/15°C');
     });
   });
 

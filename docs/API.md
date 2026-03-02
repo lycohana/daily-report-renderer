@@ -424,6 +424,14 @@ formInfo = [
 使用 `<weather>` 标签在文章内容中嵌入天气预报卡片（横向排列）:
 
 ```markdown
+<!-- 推荐：属性语法 -->
+<weather center>
+<day weekday="周二" date="3" icon="🌧️" weather="雨" temp="17/14" />
+<day weekday="周三" date="4" icon="☁️" weather="多云" temp="19 16" />
+<day weekday="周四" date="5" city="上海" icon="☀️" weather="晴" temp="24°C/15°C" />
+</weather>
+
+<!-- 兼容：旧语法 -->
 <weather>
 <day>周一|东莞|☀️|晴|26°C/17°C</day>
 <day>周二|东莞|⛅|多云|25°C/16°C</day>
@@ -432,8 +440,13 @@ formInfo = [
 ```
 
 **数据格式:**
-- 每个 `<day>` 标签包含用 `|` 分隔的5个字段：`日期|城市|图标|天气状况|温度`
-- 温度格式：`最高温/最低温`（如 `26°C/17°C`）
+- 推荐属性语法：`<day weekday="周几" date="日期" city="城市" icon="图标" weather="天气状况" temp="温度" />`
+- 兼容属性语法：`<day day="周二 3" city="城市" icon="图标" weather="天气状况" temp="温度" />`
+- 兼容旧语法（5段）：`<day>日期|城市|图标|天气状况|温度</day>`
+- 兼容旧语法（4段）：`<day>日期|图标|天气状况|温度</day>`
+- 同一 weather 块中允许混用新旧语法
+- 温度会自动规范：`17/14`、`17 14`、`17°C/14°C` 会统一为 `17°C/14°C`；单值温度 `24` 会渲染为 `24°C`
+- 智能补齐：缺 `icon` 时按 `weather` 自动映射；缺 `weather` 且有 `icon` 时反推，无法反推时填充 `未知`
 
 **渲染结果:**
 
