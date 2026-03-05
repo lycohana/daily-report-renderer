@@ -1,0 +1,47 @@
+{
+  "id": "/",
+  "name": "每日日报",
+  "short_name": "日报",
+  "description": "每日日报 - AI 资讯与热点深度分析",
+  "lang": "zh-CN",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f2eb",
+  "theme_color": "#1a1a1a",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "最新日报",
+      "short_name": "最新",
+      "description": "打开最新一期日报",
+      "url": "/"
+    },
+    {
+      "name": "历史列表",
+      "short_name": "列表",
+      "description": "查看历史日报列表",
+      "url": "/list"
+    }
+  ]
+}

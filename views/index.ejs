@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <%- include('partials/pwa-head') %>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title><%= title %></title>
   <script>
@@ -292,6 +293,7 @@
     </footer>
   </div>
   <%- include('partials/toolbar-script') %>
+  <%- include('partials/pwa-script') %>
   <script src="/js/route-transitions.js"></script>
 </body>
 </html>

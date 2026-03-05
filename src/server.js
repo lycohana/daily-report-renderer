@@ -6,11 +6,18 @@ const fileWatcher = require('./fileWatcher');
 const cache = require('./cache');
 
 const app = express();
+const publicDir = path.join(__dirname, '..', 'public');
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '..', 'views'));
 
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(publicDir, {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('sw.js') || filePath.endsWith('manifest.webmanifest')) {
+      res.setHeader('Cache-Control', 'no-cache');
+    }
+  }
+}));
 
 app.use('/', routes);
 

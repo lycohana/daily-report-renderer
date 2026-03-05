@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>离线状态 - 每日日报</title>
+  <style>
+    :root {
+      --ink-black: #1a1a1a;
+      --paper-bg: #f5f2eb;
+      --accent-red: #c41e3a;
+      --text-dark: #2c2c2c;
+      --text-muted: #666;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--paper-bg);
+      color: var(--text-dark);
+      font-family: "Noto Sans SC", "Microsoft YaHei", sans-serif;
+      line-height: 1.7;
+    }
+
+    .card {
+      width: min(560px, 100%);
+      background: #fff;
+      border: 1px solid #e5e2db;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      padding: 28px 24px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      background: var(--accent-red);
+      color: #fff;
+      border-radius: 999px;
+      font-size: 12px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 8px;
+      color: var(--ink-black);
+    }
+
+    p {
+      color: var(--text-muted);
+      margin-bottom: 18px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      text-decoration: none;
+      border: 1px solid #d4d0c8;
+      border-radius: 8px;
+      padding: 8px 14px;
+      color: var(--text-dark);
+      background: #fff;
+    }
+
+    .btn.primary {
+      background: var(--ink-black);
+      border-color: var(--ink-black);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <span class="badge">OFFLINE</span>
+    <h1>当前处于离线状态</h1>
+    <p>网络恢复后会自动更新内容。你仍可以访问已缓存的日报页面。</p>
+    <div class="actions">
+      <a class="btn primary" href="/">回到首页</a>
+      <a class="btn" href="/list">查看历史列表</a>
+    </div>
+  </main>
+</body>
+</html>
